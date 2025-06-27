@@ -2,7 +2,10 @@
   <div class="dashboard-container">
     <div class="dashboard-header">
       <h1>Кабинет застройщика</h1>
-      <button class="logout-btn" @click="logout">Выйти</button>
+      <div class="header-actions">
+        <button class="back-btn" @click="goBack">← Вернуться</button>
+        <button class="logout-btn" @click="logout">Выйти</button>
+      </div>
     </div>
 
     <div class="dashboard-content">
@@ -251,7 +254,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(['logout', 'go-back'])
 
 // Аналитика
 const analytics = ref({
@@ -357,6 +360,11 @@ const logout = () => {
   emit('logout')
 }
 
+const goBack = () => {
+  // Эмитим событие для возврата на главную страницу
+  emit('go-back')
+}
+
 const viewComplex = (complexId) => {
   console.log('Просмотр ЖК:', complexId)
 }
@@ -427,6 +435,25 @@ onMounted(() => {
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.back-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.back-btn:hover {
+  background: #e5e5e5;
+}
+
 .logout-btn {
   background: #ff3b30;
   color: white;
@@ -439,6 +466,14 @@ onMounted(() => {
 
 .logout-btn:hover {
   background: #d70015;
+}
+
+.dashboard-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dashboard-section {
@@ -828,6 +863,16 @@ onMounted(() => {
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: center;
   }
   
   .analytics-grid {

@@ -2,7 +2,10 @@
   <div class="dashboard-container">
     <div class="dashboard-header">
       <h1>Личный кабинет</h1>
-      <button class="logout-btn" @click="logout">Выйти</button>
+      <div class="header-actions">
+        <button class="back-btn" @click="goBack">← Вернуться</button>
+        <button class="logout-btn" @click="logout">Выйти</button>
+      </div>
     </div>
 
     <div class="dashboard-content">
@@ -130,7 +133,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(['logout', 'go-back'])
 
 // Данные пользователя
 const userInfo = ref({
@@ -184,6 +187,11 @@ const editForm = reactive({
 const logout = () => {
   // Эмитим событие для родительского компонента
   emit('logout')
+}
+
+const goBack = () => {
+  // Эмитим событие для возврата на главную страницу
+  emit('go-back')
 }
 
 const editProfile = () => {
@@ -257,6 +265,27 @@ onMounted(() => {
 .dashboard-header h1 {
   color: #007aff;
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.back-btn {
+  background: #f5f5f5;
+  color: #2c3e50;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #e5e5e5;
 }
 
 .logout-btn {
@@ -557,6 +586,16 @@ onMounted(() => {
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: center;
   }
   
   .properties-grid {

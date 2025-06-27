@@ -98,12 +98,12 @@ const handleGoHome = () => {
 
     <!-- Личный кабинет пользователя -->
     <div v-else-if="currentView === 'user-dashboard'">
-      <UserDashboard @logout="logout" />
+      <UserDashboard @logout="logout" @go-back="showHome" />
     </div>
 
     <!-- Личный кабинет застройщика -->
     <div v-else-if="currentView === 'developer-dashboard'">
-      <DeveloperDashboard @logout="logout" />
+      <DeveloperDashboard @logout="logout" @go-back="showHome" />
     </div>
   </div>
 </template>
