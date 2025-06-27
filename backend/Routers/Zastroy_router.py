@@ -2,16 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-from Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
+from backend.Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
 
-from Cruds.Law_crud import (
+from backend.Cruds.Law_crud import (
     create_zastroy,
     get_zastroy,
     get_zastroys,
     update_zastroy,
     delete_zastroy, check_zastroy_credentials
 )
-from Database.DB_connection import get_db
+from backend.Database.DB_connection import get_db
 
 router = APIRouter(prefix="/zastroys", tags=["Застройщики"])
 
