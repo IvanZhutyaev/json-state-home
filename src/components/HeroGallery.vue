@@ -69,7 +69,7 @@ const galleryItems = ref([
 <style scoped>
 .hero-gallery {
   margin-top: 70px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -119,7 +119,7 @@ const galleryItems = ref([
 }
 
 .search-btn {
-  background: #42b883;
+  background: #007aff;
   color: white;
   border: none;
   padding: 15px 30px;
@@ -130,7 +130,7 @@ const galleryItems = ref([
 }
 
 .search-btn:hover {
-  background: #3aa876;
+  background: #0056cc;
 }
 
 .gallery {
@@ -158,25 +158,25 @@ const galleryItems = ref([
 }
 
 .gallery-item-1 {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  background: linear-gradient(45deg, #007aff, #0056cc);
   grid-column: 1 / 2;
   grid-row: 1 / 3;
 }
 
 .gallery-item-2 {
-  background: linear-gradient(45deg, #4834d4, #686de0);
+  background: linear-gradient(45deg, #34c759, #28a745);
   grid-column: 2 / 3;
   grid-row: 1 / 2;
 }
 
 .gallery-item-3 {
-  background: linear-gradient(45deg, #00b894, #00cec9);
+  background: linear-gradient(45deg, #ff9500, #ff6b35);
   grid-column: 2 / 3;
   grid-row: 2 / 3;
 }
 
 .gallery-item-4 {
-  background: linear-gradient(45deg, #fdcb6e, #e17055);
+  background: linear-gradient(45deg, #af52de, #8e44ad);
   grid-column: 1 / 2;
   grid-row: 3 / 4;
 }
@@ -212,7 +212,7 @@ const galleryItems = ref([
 .item-price {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #42b883;
+  color: #007aff;
 }
 
 @media (max-width: 1024px) {

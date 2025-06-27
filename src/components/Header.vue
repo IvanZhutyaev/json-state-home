@@ -15,24 +15,39 @@
       </nav>
       
       <div class="auth">
-        <button class="btn-login" @click="handleLogin">
+        <button class="btn-login" @click="openLoginModal">
           Войти
         </button>
       </div>
     </div>
+    
+    <!-- Модальное окно входа -->
+    <LoginModal 
+      :is-open="isLoginModalOpen" 
+      @close="closeLoginModal" 
+    />
   </header>
 </template>
 
 <script setup>
-const handleLogin = () => {
-  alert('Функция входа будет реализована позже')
+import { ref } from 'vue'
+import LoginModal from './LoginModal.vue'
+
+const isLoginModalOpen = ref(false)
+
+const openLoginModal = () => {
+  isLoginModalOpen.value = true
+}
+
+const closeLoginModal = () => {
+  isLoginModalOpen.value = false
 }
 </script>
 
 <style scoped>
 .header {
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
   position: fixed;
   top: 0;
   left: 0;
@@ -64,7 +79,7 @@ const handleLogin = () => {
 .logo-text {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: #007aff;
 }
 
 .nav {
@@ -76,18 +91,18 @@ const handleLogin = () => {
   text-decoration: none;
   color: #2c3e50;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
   padding: 8px 12px;
   border-radius: 6px;
 }
 
 .nav-link:hover {
-  color: #42b883;
-  background: rgba(66, 184, 131, 0.1);
+  color: #007aff;
+  background: rgba(0, 122, 255, 0.1);
 }
 
 .btn-login {
-  background: #42b883;
+  background: #007aff;
   color: white;
   border: none;
   padding: 10px 24px;
@@ -98,7 +113,7 @@ const handleLogin = () => {
 }
 
 .btn-login:hover {
-  background: #3aa876;
+  background: #0056cc;
 }
 
 @media (max-width: 768px) {
