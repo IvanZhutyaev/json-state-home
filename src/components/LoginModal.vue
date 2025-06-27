@@ -217,7 +217,6 @@ const registerData = reactive({
   ogrn: '',
   address: '',
   representative: '',
-  password: ''
 })
 
 const selectUserType = (type) => {
