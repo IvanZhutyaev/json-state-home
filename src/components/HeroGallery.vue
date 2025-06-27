@@ -1,0 +1,250 @@
+<template>
+  <section class="hero-gallery">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          Найдите свой идеальный дом
+        </h1>
+        <p class="hero-subtitle">
+          Более 50 000 новостроек по всей России. Проверенные застройщики, 
+          прозрачные условия и выгодные цены.
+        </p>
+        <div class="hero-search">
+          <input 
+            type="text" 
+            placeholder="Введите название города или района"
+            class="search-input"
+          />
+          <button class="search-btn">Найти</button>
+        </div>
+      </div>
+      
+      <div class="gallery">
+        <div class="gallery-grid">
+          <div 
+            v-for="(item, index) in galleryItems" 
+            :key="index"
+            class="gallery-item"
+            :class="`gallery-item-${index + 1}`"
+          >
+            <div class="item-overlay">
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description }}</p>
+              <span class="item-price">{{ item.price }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+
+const galleryItems = ref([
+  {
+    title: 'ЖК "Солнечный"',
+    description: 'Современный комплекс с развитой инфраструктурой',
+    price: 'от 3.2 млн ₽'
+  },
+  {
+    title: 'ЖК "Парковый"',
+    description: 'Зеленый район с собственным парком',
+    price: 'от 4.1 млн ₽'
+  },
+  {
+    title: 'ЖК "Речной"',
+    description: 'Вид на реку, элитное расположение',
+    price: 'от 6.8 млн ₽'
+  },
+  {
+    title: 'ЖК "Центральный"',
+    description: 'В самом сердце города',
+    price: 'от 5.5 млн ₽'
+  }
+])
+</script>
+
+<style scoped>
+.hero-gallery {
+  margin-top: 70px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.hero-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.hero-content {
+  color: white;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.hero-search {
+  display: flex;
+  gap: 1rem;
+  max-width: 500px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-btn {
+  background: #42b883;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+  background: #3aa876;
+}
+
+.gallery {
+  position: relative;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+  height: 400px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-item-1 {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+
+.gallery-item-2 {
+  background: linear-gradient(45deg, #4834d4, #686de0);
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.gallery-item-3 {
+  background: linear-gradient(45deg, #00b894, #00cec9);
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+.gallery-item-4 {
+  background: linear-gradient(45deg, #fdcb6e, #e17055);
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+}
+
+.item-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+  padding: 1.5rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .item-overlay {
+  transform: translateY(0);
+}
+
+.item-overlay h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.item-overlay p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.item-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #42b883;
+}
+
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-container {
+    padding: 2rem 1rem;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+  
+  .hero-search {
+    flex-direction: column;
+  }
+  
+  .gallery-grid {
+    height: 300px;
+  }
+}
+</style> 
