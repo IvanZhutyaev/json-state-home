@@ -8,6 +8,7 @@ from environs import Env
 env=Env()
 env.read_env()
 db_path=env.str('database_path')
+print(f"Подключение к базе данных: {db_path}")
 engine = create_engine(db_path)
 SessionLocal=sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
@@ -20,3 +21,15 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def create_tables():
+    """Создает все таблицы в базе данных"""
+    try:
+        print("Попытка создания таблиц...")
+        base.metadata.create_all(engine)
+        print("Таблицы успешно созданы")
+    except Exception as e:
+        print(f"Ошибка при создании таблиц: {e}")
+        print(f"Тип ошибки: {type(e)}")
+        # Не прерываем работу приложения, если не удалось создать таблицы

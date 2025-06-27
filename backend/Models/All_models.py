@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, BOOLEAN, false
-from sqlalchemy.dialects.mysql import NUMERIC
 from sqlalchemy.orm import relationship
 
-from Database.DB_connection import base, engine
+from ..Database.DB_connection import base, engine
 
 
 class Law_Face(base):
@@ -25,5 +24,4 @@ class User(base):
     password = Column(String, nullable=False)
 
 
-
-base.metadata.create_all(engine)
+# base.metadata.create_all(engine)

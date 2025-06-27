@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .Routers import Zastroy_router, User_router
+from .Database.DB_connection import create_tables
 
 app = FastAPI()
 
@@ -20,6 +21,12 @@ app.include_router(User_router.router)
 @app.get("/items/")
 async def read_items():
     return [{"name": "Item 1"}]
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Инициализация при запуске приложения"""
+    create_tables()
 
 
 
