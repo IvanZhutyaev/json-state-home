@@ -83,4 +83,20 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('@/assets/bgimage.jpg') no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(16px) brightness(0.8);
+  pointer-events: none;
 }
