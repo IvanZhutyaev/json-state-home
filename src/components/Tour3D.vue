@@ -11,8 +11,19 @@
         title="3D-тур по ЖК"
       ></iframe>
     </div>
+    <button id="btn-3d-tour" @click="on3DTourClick" class="tour-3d-btn">Запустить 3D-тур</button>
   </section>
 </template>
+
+<script setup>
+import { sendEvent } from '../utils/analytics.js';
+
+const apartmentId = 123; // Можно заменить на актуальный id
+
+function on3DTourClick() {
+  sendEvent(apartmentId, "click_3d_tour");
+}
+</script>
 
 <style scoped>
 .tour-3d-block {
@@ -41,6 +52,21 @@
   height: 100%;
   border: none;
   display: block;
+}
+.tour-3d-btn {
+  display: block;
+  margin: 2rem auto 0 auto;
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tour-3d-btn:hover {
+  background: #005bb5;
 }
 @media (max-width: 768px) {
   .tour-title {
