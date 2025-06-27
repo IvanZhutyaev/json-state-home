@@ -250,20 +250,6 @@ const closeModal = () => {
   clearFormData()
 }
 
-// Функция для создания и скачивания JSON файла
-const downloadJSON = (data, filename) => {
-  const jsonString = JSON.stringify(data, null, 2)
-  const blob = new Blob([jsonString], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
-
 const handleLogin = () => {
   if (userType.value === 'user') {
     if (!loginData.identifier || !loginData.password) {
@@ -283,24 +269,33 @@ const handleLogin = () => {
   closeModal()
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   if (userType.value === 'user') {
     if (!registerData.name || !registerData.phone || !registerData.password) {
       alert('Заполните все поля')
       return
     }
     
-    // Создаем JSON для пользователя
+    // Формируем данные для пользователя
     const userData = {
       "Name": registerData.name,
       "Phone": registerData.phone,
       "password": registerData.password
     }
-    
-    console.log('Регистрация пользователя:', userData)
-    downloadJSON(userData, 'user_registration.json')
-    alert('Регистрация выполнена успешно! JSON файл скачан.')
-    
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      })
+      if (response.ok) {
+        alert('Регистрация выполнена успешно!')
+      } else {
+        alert('Ошибка регистрации!')
+      }
+    } catch (e) {
+      alert('Ошибка сети!')
+    }
   } else {
     if (!registerData.companyName || !registerData.inn || !registerData.ogrn || 
         !registerData.address || !registerData.representative || !registerData.password) {
@@ -308,7 +303,7 @@ const handleRegister = () => {
       return
     }
     
-    // Создаем JSON для застройщика
+    // Формируем данные для застройщика
     const developerData = {
       "Company_name": registerData.companyName,
       "INN": parseInt(registerData.inn),
@@ -317,10 +312,20 @@ const handleRegister = () => {
       "User_name": registerData.representative,
       "password": registerData.password
     }
-    
-    console.log('Регистрация застройщика:', developerData)
-    downloadJSON(developerData, 'developer_registration.json')
-    alert('Регистрация выполнена успешно! JSON файл скачан.')
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(developerData)
+      })
+      if (response.ok) {
+        alert('Регистрация выполнена успешно!')
+      } else {
+        alert('Ошибка регистрации!')
+      }
+    } catch (e) {
+      alert('Ошибка сети!')
+    }
   }
   closeModal()
 }
