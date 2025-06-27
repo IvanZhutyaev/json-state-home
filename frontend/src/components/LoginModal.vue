@@ -196,7 +196,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'login-success'])
 
 const isLogin = ref(true)
 const userType = ref(null)
@@ -267,7 +267,13 @@ const handleLogin = async () => {
         })
       })
       if (response.ok) {
-        alert('Вход выполнен успешно!')
+        const userData = await response.json()
+        emit('login-success', {
+          type: 'user',
+          name: loginData.identifier,
+          ...userData
+        })
+        alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
       } else {
         const errorData = await response.json()
         alert(`Ошибка входа: ${errorData.detail}`)
@@ -291,7 +297,13 @@ const handleLogin = async () => {
         })
       })
       if (response.ok) {
-        alert('Вход выполнен успешно!')
+        const userData = await response.json()
+        emit('login-success', {
+          type: 'developer',
+          name: `Застройщик ${loginData.identifier}`,
+          ...userData
+        })
+        alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
       } else {
         const errorData = await response.json()
         alert(`Ошибка входа: ${errorData.detail}`)
@@ -323,7 +335,13 @@ const handleRegister = async () => {
         body: JSON.stringify(userData)
       })
       if (response.ok) {
-        alert('Регистрация выполнена успешно!')
+        const userData = await response.json()
+        emit('login-success', {
+          type: 'user',
+          name: registerData.name,
+          ...userData
+        })
+        alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
       } else {
         const errorData = await response.json()
         alert(`Ошибка регистрации: ${errorData.detail}`)
@@ -354,7 +372,13 @@ const handleRegister = async () => {
         body: JSON.stringify(developerData)
       })
       if (response.ok) {
-        alert('Регистрация выполнена успешно!')
+        const userData = await response.json()
+        emit('login-success', {
+          type: 'developer',
+          name: registerData.companyName,
+          ...userData
+        })
+        alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
       } else {
         const errorData = await response.json()
         alert(`Ошибка регистрации: ${errorData.detail}`)
