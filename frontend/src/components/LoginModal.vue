@@ -250,21 +250,55 @@ const closeModal = () => {
   clearFormData()
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
   if (userType.value === 'user') {
     if (!loginData.identifier || !loginData.password) {
       alert('Заполните все поля')
       return
     }
-    console.log('Вход пользователя:', loginData)
-    alert('Вход выполнен успешно!')
+    
+    try {
+      const response = await fetch('http://localhost:8000/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: loginData.identifier,
+          password: loginData.password
+        })
+      })
+      if (response.ok) {
+        alert('Вход выполнен успешно!')
+      } else {
+        const errorData = await response.json()
+        alert(`Ошибка входа: ${errorData.detail}`)
+      }
+    } catch (e) {
+      alert('Ошибка сети!')
+    }
   } else {
     if (!loginData.identifier || !loginData.password) {
       alert('Заполните все поля')
       return
     }
-    console.log('Вход застройщика:', loginData)
-    alert('Вход выполнен успешно!')
+    
+    try {
+      const response = await fetch('http://localhost:8000/zastroys/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inn: parseInt(loginData.identifier),
+          password: loginData.password
+        })
+      })
+      if (response.ok) {
+        alert('Вход выполнен успешно!')
+      } else {
+        const errorData = await response.json()
+        alert(`Ошибка входа: ${errorData.detail}`)
+      }
+    } catch (e) {
+      alert('Ошибка сети!')
+    }
   }
   closeModal()
 }
@@ -278,12 +312,12 @@ const handleRegister = async () => {
     
     // Формируем данные для пользователя
     const userData = {
-      "Name": registerData.name,
-      "Phone": registerData.phone,
+      "User_name": registerData.name,
+      "Phone_number": registerData.phone,
       "password": registerData.password
     }
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('http://localhost:8000/users/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -291,7 +325,8 @@ const handleRegister = async () => {
       if (response.ok) {
         alert('Регистрация выполнена успешно!')
       } else {
-        alert('Ошибка регистрации!')
+        const errorData = await response.json()
+        alert(`Ошибка регистрации: ${errorData.detail}`)
       }
     } catch (e) {
       alert('Ошибка сети!')
@@ -313,7 +348,7 @@ const handleRegister = async () => {
       "password": registerData.password
     }
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('http://localhost:8000/zastroys/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(developerData)
@@ -321,7 +356,8 @@ const handleRegister = async () => {
       if (response.ok) {
         alert('Регистрация выполнена успешно!')
       } else {
-        alert('Ошибка регистрации!')
+        const errorData = await response.json()
+        alert(`Ошибка регистрации: ${errorData.detail}`)
       }
     } catch (e) {
       alert('Ошибка сети!')

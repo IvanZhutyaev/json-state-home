@@ -1,15 +1,8 @@
 from sqlalchemy.orm import Session
-<<<<<<< HEAD
-from Models.All_models import Law_Face, User
+from ..Models.All_models import Law_Face, User
 from passlib.context import CryptContext
 
-from Schemas.User_schema import UserModel
-=======
-from backend.Models.All_models import Law_Face, User
-from passlib.context import CryptContext
-
-from backend.Schemas.User_schema import UserModel
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
+from ..Schemas.User_schema import UserModel
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

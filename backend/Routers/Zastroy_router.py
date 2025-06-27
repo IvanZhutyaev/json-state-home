@@ -2,28 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
-<<<<<<< HEAD
 from ..Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
 from ..Cruds.Law_crud import (
-=======
-from backend.Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
-
-from backend.Cruds.Law_crud import (
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
     create_zastroy,
     get_zastroy,
     get_zastroys,
     update_zastroy,
-<<<<<<< HEAD
     delete_zastroy, 
     check_zastroy_credentials
 )
 from ..Database.DB_connection import get_db
-=======
-    delete_zastroy, check_zastroy_credentials
-)
-from backend.Database.DB_connection import get_db
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
 
 router = APIRouter(prefix="/zastroys", tags=["Застройщики"])
 
@@ -34,33 +22,16 @@ def create_new_zastroy(zastroy: ZastroyModel, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-<<<<<<< HEAD
 @router.post("/login")
 def zastroy_login(credentials: ZastroyLogin, db: Session = Depends(get_db)):
     if check_zastroy_credentials(db, credentials.inn, credentials.password):
         return {"status": "success", "message": "Аутентификация прошла успешно"}
     
-=======
-
-
-@router.post("/login")
-def zastroy_login(
-        credentials: ZastroyLogin,
-        db: Session = Depends(get_db)
-):
-    if check_zastroy_credentials(db, credentials.inn, credentials.password):
-        return {"status": "success", "message": "Аутентификация прошла успешно"}
-
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Неверный ИНН или пароль"
     )
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
 @router.get("/", response_model=list[ZastroyResponse])
 def read_zastroys(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return get_zastroys(db, skip=skip, limit=limit)
@@ -73,15 +44,7 @@ def read_zastroy(zastroy_id: int, db: Session = Depends(get_db)):
     return db_zastroy
 
 @router.put("/{zastroy_id}", response_model=ZastroyResponse)
-<<<<<<< HEAD
 def update_existing_zastroy(zastroy_id: int, zastroy: ZastroyModel, db: Session = Depends(get_db)):
-=======
-def update_existing_zastroy(
-    zastroy_id: int,
-    zastroy: ZastroyModel,
-    db: Session = Depends(get_db)
-):
->>>>>>> 1c33defa92a24f13174851392fbfd2067e173c23
     try:
         return update_zastroy(db, zastroy_id, zastroy)
     except ValueError as e:
