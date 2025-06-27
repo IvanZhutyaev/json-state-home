@@ -2,7 +2,7 @@
   <header class="header">
     <div class="header-container">
       <div class="logo">
-        <img src="@/assets/logo.png" alt="Логотип" class="logo-img" />
+        <img src="@/assets/logo.svg" alt="Логотип" class="logo-img" />
         <span class="logo-text">Наш.Дом</span>
       </div>
       
