@@ -15,7 +15,8 @@ typing-inspection==0.4.1
 pydantic-core==2.33.2
 
 # База данных (раскомментировать когда понадобится)
-# sqlalchemy==2.0.41
+sqlalchemy
+psycopg2-binary
 # greenlet==3.2.3
 
 # Дополнительные зависимости для разработки
