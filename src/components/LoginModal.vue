@@ -30,13 +30,13 @@
       <!-- Форма входа -->
       <div v-else-if="isLogin" class="login-form">
         <div class="form-group">
-          <label v-if="userType === 'user'">Email/Телефон</label>
+          <label v-if="userType === 'user'">Телефон</label>
           <label v-else>ИНН</label>
           <input 
             v-if="userType === 'user'"
-            type="text" 
+            type="tel" 
             v-model="loginData.identifier"
-            placeholder="Введите email или телефон"
+            placeholder="Введите номер телефона"
             class="form-input"
           />
           <input 
@@ -83,11 +83,11 @@
           </div>
 
           <div class="form-group">
-            <label>Email/Телефон</label>
+            <label>Телефон</label>
             <input 
-              type="text" 
-              v-model="registerData.identifier"
-              placeholder="Введите email или телефон"
+              type="tel" 
+              v-model="registerData.phone"
+              placeholder="Введите номер телефона"
               class="form-input"
             />
           </div>
@@ -154,6 +154,16 @@
               class="form-input"
             />
           </div>
+
+          <div class="form-group">
+            <label>Пароль</label>
+            <input 
+              type="password" 
+              v-model="registerData.password"
+              placeholder="Придумайте пароль"
+              class="form-input"
+            />
+          </div>
         </div>
 
         <button class="submit-btn" @click="handleRegister">
@@ -199,14 +209,15 @@ const loginData = reactive({
 const registerData = reactive({
   // Для пользователя
   name: '',
-  identifier: '',
+  phone: '',
   password: '',
   // Для застройщика
   companyName: '',
   inn: '',
   ogrn: '',
   address: '',
-  representative: ''
+  representative: '',
+  password: ''
 })
 
 const selectUserType = (type) => {
@@ -240,6 +251,20 @@ const closeModal = () => {
   clearFormData()
 }
 
+// Функция для создания и скачивания JSON файла
+const downloadJSON = (data, filename) => {
+  const jsonString = JSON.stringify(data, null, 2)
+  const blob = new Blob([jsonString], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 const handleLogin = () => {
   if (userType.value === 'user') {
     if (!loginData.identifier || !loginData.password) {
@@ -261,20 +286,42 @@ const handleLogin = () => {
 
 const handleRegister = () => {
   if (userType.value === 'user') {
-    if (!registerData.name || !registerData.identifier || !registerData.password) {
+    if (!registerData.name || !registerData.phone || !registerData.password) {
       alert('Заполните все поля')
       return
     }
-    console.log('Регистрация пользователя:', registerData)
-    alert('Регистрация выполнена успешно!')
+    
+    // Создаем JSON для пользователя
+    const userData = {
+      "Name": registerData.name,
+      "Phone": registerData.phone,
+      "password": registerData.password
+    }
+    
+    console.log('Регистрация пользователя:', userData)
+    downloadJSON(userData, 'user_registration.json')
+    alert('Регистрация выполнена успешно! JSON файл скачан.')
+    
   } else {
     if (!registerData.companyName || !registerData.inn || !registerData.ogrn || 
-        !registerData.address || !registerData.representative) {
+        !registerData.address || !registerData.representative || !registerData.password) {
       alert('Заполните все поля')
       return
     }
-    console.log('Регистрация застройщика:', registerData)
-    alert('Регистрация выполнена успешно!')
+    
+    // Создаем JSON для застройщика
+    const developerData = {
+      "Company_name": registerData.companyName,
+      "INN": parseInt(registerData.inn),
+      "OGRN": parseInt(registerData.ogrn),
+      "Adress": registerData.address,
+      "User_name": registerData.representative,
+      "password": registerData.password
+    }
+    
+    console.log('Регистрация застройщика:', developerData)
+    downloadJSON(developerData, 'developer_registration.json')
+    alert('Регистрация выполнена успешно! JSON файл скачан.')
   }
   closeModal()
 }
