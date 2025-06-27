@@ -191,16 +191,37 @@
           <input v-model="newComplex.address" type="text" placeholder="Введите адрес" />
         </div>
         <div class="form-group">
-          <label>Описание:</label>
-          <textarea v-model="newComplex.description" rows="3" placeholder="Описание ЖК"></textarea>
+          <label>Город:</label>
+          <select v-model="newComplex.city">
+            <option value="">Выберите город</option>
+            <option value="Краснодар">Краснодар</option>
+            <option value="Адыгея">Адыгея</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>Ссылка на 3D-тур Avalin:</label>
-          <input v-model="newComplex.tourUrl" type="url" placeholder="https://rz360.avalin.space/..." />
+          <label>Год ввода в эксплуатацию:</label>
+          <select v-model="newComplex.year">
+            <option value="">Выберите год</option>
+            <option value="2025">2025</option>
+            <option value="2030">2030</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>Изображение:</label>
-          <input v-model="newComplex.image" type="url" placeholder="URL изображения" />
+          <label>Класс ЖК:</label>
+          <select v-model="newComplex.building_type">
+            <option value="">Выберите класс</option>
+            <option value="Эконом">Эконом</option>
+            <option value="Комфорт">Комфорт</option>
+            <option value="Бизнес">Бизнес</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Статус:</label>
+          <select v-model="newComplex.status">
+            <option value="">Выберите статус</option>
+            <option value="Готов">Готов</option>
+            <option value="Строится">Строится</option>
+          </select>
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" @click="closeAddComplexModal">Отмена</button>
@@ -340,9 +361,10 @@ const showAddApartmentModal = ref(false)
 const newComplex = reactive({
   name: '',
   address: '',
-  description: '',
-  tourUrl: '',
-  image: ''
+  city: '',
+  year: '',
+  building_type: '',
+  status: ''
 })
 
 const newApartment = reactive({
@@ -399,9 +421,48 @@ const closeAddApartmentModal = () => {
   Object.keys(newApartment).forEach(key => newApartment[key] = '')
 }
 
-const addComplex = () => {
-  console.log('Добавление ЖК:', newComplex)
-  closeAddComplexModal()
+const addComplex = async () => {
+  // Проверяем, что все обязательные поля заполнены
+  if (!newComplex.name || !newComplex.address || !newComplex.city || 
+      !newComplex.year || !newComplex.building_type || !newComplex.status) {
+    alert('Пожалуйста, заполните все обязательные поля')
+    return
+  }
+
+  // Формируем JSON в нужном формате
+  const complexData = {
+    name: newComplex.name,
+    address: newComplex.address,
+    city: newComplex.city,
+    year: parseInt(newComplex.year),
+    building_type: newComplex.building_type,
+    status: newComplex.status,
+    developer_id: 1
+  }
+
+  try {
+    const response = await fetch('http://localhost:8000/properties/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(complexData)
+    })
+
+    if (response.ok) {
+      const result = await response.json()
+      console.log('ЖК успешно создан:', result)
+      alert('ЖК успешно добавлен!')
+      closeAddComplexModal()
+      // Здесь можно добавить обновление списка ЖК
+    } else {
+      const errorData = await response.json()
+      alert(`Ошибка создания ЖК: ${errorData.detail}`)
+    }
+  } catch (error) {
+    console.error('Ошибка при создании ЖК:', error)
+    alert('Ошибка сети при создании ЖК')
+  }
 }
 
 const addApartmentToComplex = () => {
@@ -792,47 +853,63 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
+  padding: 1rem;
 }
 
 .modal-content {
   background: white;
-  padding: 2rem;
   border-radius: 12px;
-  min-width: 500px;
+  max-width: 500px;
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  padding: 2rem;
 }
 
 .modal-content h3 {
-  margin-bottom: 1.5rem;
+  margin: 0 0 1.5rem 0;
   color: #2c3e50;
+  font-size: 1.5rem;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #666;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .form-group input,
-.form-group select,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.form-group select {
+  background: white;
+  cursor: pointer;
+}
+
+.form-group select option {
+  padding: 0.5rem;
 }
 
 .modal-actions {
@@ -846,18 +923,30 @@ onMounted(() => {
   background: #007aff;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: #0056cc;
 }
 
 .btn-secondary {
   background: #f5f5f5;
   color: #666;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #e5e5e5;
 }
 
 @media (max-width: 768px) {
