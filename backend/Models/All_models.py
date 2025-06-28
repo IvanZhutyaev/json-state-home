@@ -35,6 +35,9 @@ class Property(base):
     city = Column(String, nullable=False)
     is_available = Column(BOOLEAN, nullable=False, default=True)
     zastroy_id = Column(Integer, ForeignKey("Law_faces.id"), nullable=False)
+    area = Column(Integer, nullable=True)  # Площадь в м²
+    rooms = Column(Integer, nullable=True)  # Количество комнат
+    floor = Column(Integer, nullable=True)  # Этаж
 
 
 class Booking(base):

@@ -92,6 +92,17 @@ export const developerAPI = {
       body: JSON.stringify(complexData)
     }),
   
+  // Создать новую квартиру в ЖК
+  createApartment: (apartmentData) => 
+    apiRequest('/properties/', {
+      method: 'POST',
+      body: JSON.stringify(apartmentData)
+    }),
+  
+  // Получить квартиры конкретного ЖК
+  getComplexApartments: (complexId) => 
+    apiRequest(`/properties/?complex_id=${complexId}`),
+  
   // Обновить ЖК
   updateProperty: (propertyId, propertyData) => 
     apiRequest(`/properties/${propertyId}`, {
@@ -117,6 +128,9 @@ export const propertyAPI = {
     if (params.city) searchParams.append('city', params.city)
     if (params.minPrice) searchParams.append('min_price', params.minPrice)
     if (params.maxPrice) searchParams.append('max_price', params.maxPrice)
+    if (params.rooms) searchParams.append('rooms', params.rooms)
+    if (params.minArea) searchParams.append('min_area', params.minArea)
+    if (params.maxArea) searchParams.append('max_area', params.maxArea)
     if (params.isAvailable !== undefined) searchParams.append('is_available', params.isAvailable)
     
     return apiRequest(`/properties/search?${searchParams.toString()}`)

@@ -81,7 +81,26 @@
             <label>Цена до:</label>
             <input v-model="searchFilters.maxPrice" type="number" placeholder="10000000" />
           </div>
+          <div class="filter-group">
+            <label>Количество комнат:</label>
+            <select v-model="searchFilters.rooms">
+              <option value="">Любое</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4+</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Площадь от (м²):</label>
+            <input v-model="searchFilters.minArea" type="number" placeholder="0" />
+          </div>
+          <div class="filter-group">
+            <label>Площадь до (м²):</label>
+            <input v-model="searchFilters.maxArea" type="number" placeholder="200" />
+          </div>
           <button class="search-btn" @click="searchProperties">Найти</button>
+          <button class="clear-btn" @click="clearFilters">Очистить</button>
         </div>
 
         <div v-if="searchResults.length > 0" class="search-results">
@@ -155,7 +174,10 @@ const bookedProperties = ref([])
 const searchFilters = reactive({
   city: '',
   minPrice: '',
-  maxPrice: ''
+  maxPrice: '',
+  rooms: '',
+  minArea: '',
+  maxArea: ''
 })
 
 const searchResults = ref([])
@@ -326,6 +348,16 @@ const cancelBooking = (propertyId) => {
 const viewDetails = (propertyId) => {
   // Просмотр деталей объекта
   console.log('Детали объекта:', propertyId)
+}
+
+const clearFilters = () => {
+  // Логика очистки фильтров
+  searchFilters.city = ''
+  searchFilters.minPrice = ''
+  searchFilters.maxPrice = ''
+  searchFilters.rooms = ''
+  searchFilters.minArea = ''
+  searchFilters.maxArea = ''
 }
 
 onMounted(() => {
@@ -564,6 +596,9 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .filter-group {
@@ -574,28 +609,53 @@ onMounted(() => {
 
 .filter-group label {
   font-weight: 600;
-  color: #666;
+  color: #2c3e50;
+  font-size: 0.9rem;
 }
 
-.filter-group input {
-  padding: 0.5rem;
+.filter-group input,
+.filter-group select {
+  padding: 0.75rem;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.search-btn,
+.clear-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  align-self: end;
 }
 
 .search-btn {
   background: #007aff;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  align-self: end;
 }
 
 .search-btn:hover {
   background: #0056cc;
+}
+
+.clear-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.clear-btn:hover {
+  background: #5a6268;
 }
 
 .search-results h3 {

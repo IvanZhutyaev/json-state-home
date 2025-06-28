@@ -12,11 +12,16 @@ class PropertyModel(BaseModel):
     city: str = Field(max_length=100)
     is_available: bool = True
     zastroy_id: int
+    area: Optional[int] = None  # Площадь в м²
+    rooms: Optional[int] = None  # Количество комнат
+    floor: Optional[int] = None  # Этаж
 
 
 class PropertyResponse(PropertyModel):
     id: int
-    created_at: datetime
+    area: Optional[int] = None
+    rooms: Optional[int] = None
+    floor: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -26,6 +31,9 @@ class PropertySearch(BaseModel):
     city: Optional[str] = None
     min_price: Optional[float] = None
     max_price: Optional[float] = None
+    rooms: Optional[int] = None
+    min_area: Optional[float] = None
+    max_area: Optional[float] = None
     is_available: Optional[bool] = True
 
 

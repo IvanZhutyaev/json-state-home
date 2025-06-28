@@ -81,6 +81,20 @@
                 <span>Квартир: {{ complex.apartmentsCount }}</span>
                 <span>Продано: {{ complex.soldCount }}</span>
               </div>
+              
+              <!-- Список квартир в ЖК -->
+              <div v-if="complex.apartments && complex.apartments.length > 0" class="apartments-list">
+                <h4>Квартиры в ЖК:</h4>
+                <div class="apartment-item" v-for="apartment in complex.apartments" :key="apartment.id">
+                  <div class="apartment-info-mini">
+                    <span class="apartment-name">{{ apartment.name }}</span>
+                    <span class="apartment-price">{{ apartment.price }} ₽</span>
+                    <span class="apartment-area">{{ apartment.area }} м²</span>
+                    <span class="apartment-rooms">{{ apartment.rooms }} комн.</span>
+                  </div>
+                </div>
+              </div>
+              
               <div class="complex-actions">
                 <button class="action-btn primary" @click="viewComplex(complex.id)">
                   Просмотр
@@ -250,10 +264,14 @@
     <!-- Модальное окно добавления квартиры -->
     <div v-if="showAddApartmentModal" class="modal-overlay" @click="closeAddApartmentModal">
       <div class="modal-content" @click.stop>
-        <h3>Добавить квартиру</h3>
+        <h3>Добавить квартиру в ЖК</h3>
         <div class="form-group">
-          <label>Номер квартиры:</label>
-          <input v-model="newApartment.number" type="text" placeholder="Например: 45" />
+          <label>Название квартиры:</label>
+          <input v-model="newApartment.name" type="text" placeholder="Например: Квартира 45" />
+        </div>
+        <div class="form-group">
+          <label>Адрес:</label>
+          <input v-model="newApartment.address" type="text" placeholder="Полный адрес квартиры" />
         </div>
         <div class="form-group">
           <label>Площадь (м²):</label>
@@ -277,8 +295,16 @@
           <input v-model="newApartment.price" type="number" placeholder="3200000" />
         </div>
         <div class="form-group">
+          <label>Описание:</label>
+          <textarea v-model="newApartment.description" placeholder="Описание квартиры" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Город:</label>
+          <input v-model="newApartment.city" type="text" placeholder="Москва" />
+        </div>
+        <div class="form-group">
           <label>Изображение:</label>
-          <input v-model="newApartment.image" type="url" placeholder="URL изображения" />
+          <input v-model="newApartment.image_url" type="url" placeholder="URL изображения" />
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" @click="closeAddApartmentModal">Отмена</button>
@@ -338,13 +364,19 @@ const newComplex = reactive({
 })
 
 const newApartment = reactive({
-  number: '',
+  name: '',
+  address: '',
   area: '',
   rooms: '1',
   floor: '',
   price: '',
-  image: ''
+  description: '',
+  city: '',
+  image_url: ''
 })
+
+// Переменная для хранения ID выбранного ЖК
+const selectedComplexId = ref(null)
 
 // Загрузка данных
 const loading = ref(false)
@@ -387,19 +419,47 @@ const loadDeveloperData = async () => {
       const residentialComplexes = await developerAPI.getDeveloperResidentialComplexes(developer.Company_name)
       console.log('Полученные ЖК:', residentialComplexes)
       
-      complexes.value = residentialComplexes.map(complex => ({
-        id: complex.id,
-        name: complex.name,
-        address: complex.address,
-        status: complex.status === 'Сдан' ? 'active' : 'inactive',
-        statusText: complex.status || 'Неизвестно',
-        apartmentsCount: 0, // Пока нет данных о количестве квартир
-        soldCount: 0, // Пока нет данных о продажах
-        image: complex.avatar_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
-        city: complex.city,
-        housingClass: complex.housing_class,
-        commissioningDate: complex.commissioning_date
-      }))
+      // Загружаем квартиры для каждого ЖК
+      const complexesWithApartments = await Promise.all(
+        residentialComplexes.map(async (complex) => {
+          try {
+            // Загружаем квартиры для этого ЖК
+            const apartments = await developerAPI.getComplexApartments(complex.id)
+            return {
+              id: complex.id,
+              name: complex.name,
+              address: complex.address,
+              status: complex.status === 'Сдан' ? 'active' : 'inactive',
+              statusText: complex.status || 'Неизвестно',
+              apartmentsCount: apartments.length,
+              soldCount: apartments.filter(apt => !apt.is_available).length,
+              image: complex.avatar_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
+              city: complex.city,
+              housingClass: complex.housing_class,
+              commissioningDate: complex.commissioning_date,
+              apartments: apartments
+            }
+          } catch (error) {
+            console.warn(`Не удалось загрузить квартиры для ЖК ${complex.name}:`, error)
+            return {
+              id: complex.id,
+              name: complex.name,
+              address: complex.address,
+              status: complex.status === 'Сдан' ? 'active' : 'inactive',
+              statusText: complex.status || 'Неизвестно',
+              apartmentsCount: 0,
+              soldCount: 0,
+              image: complex.avatar_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
+              city: complex.city,
+              housingClass: complex.housing_class,
+              commissioningDate: complex.commissioning_date,
+              apartments: []
+            }
+          }
+        })
+      )
+      
+      complexes.value = complexesWithApartments
     } catch (complexError) {
       console.warn('Не удалось загрузить жилые комплексы:', complexError)
       console.log('Попробуем загрузить обычные объекты недвижимости...')
@@ -417,7 +477,8 @@ const loadDeveloperData = async () => {
         image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
         city: property.city,
         housingClass: 'Не указан',
-        commissioningDate: 'Не указана'
+        commissioningDate: 'Не указана',
+        apartments: []
       }))
     }
     
@@ -459,6 +520,7 @@ const editComplex = (complexId) => {
 }
 
 const addApartment = (complexId) => {
+  selectedComplexId.value = complexId
   showAddApartmentModal.value = true
 }
 
@@ -527,9 +589,51 @@ const addComplex = async () => {
   }
 }
 
-const addApartmentToComplex = () => {
-  console.log('Добавление квартиры:', newApartment)
-  closeAddApartmentModal()
+const addApartmentToComplex = async () => {
+  // Проверяем, что все обязательные поля заполнены
+  if (!newApartment.name || !newApartment.address || !newApartment.price || 
+      !newApartment.city || !newApartment.area) {
+    alert('Пожалуйста, заполните все обязательные поля')
+    return
+  }
+
+  // Получаем ID застройщика
+  let developerId = 1
+  const userInfo = localStorage.getItem('userInfo')
+  if (userInfo) {
+    const userData = JSON.parse(userInfo)
+    if (userData.type === 'developer' && userData.id) {
+      developerId = userData.id
+    }
+  }
+
+  // Формируем данные квартиры
+  const apartmentData = {
+    name: newApartment.name,
+    address: newApartment.address,
+    price: parseFloat(newApartment.price),
+    description: newApartment.description || null,
+    image_url: newApartment.image_url || null,
+    city: newApartment.city,
+    is_available: true,
+    zastroy_id: developerId,
+    // Дополнительные поля для квартиры
+    area: parseFloat(newApartment.area),
+    rooms: parseInt(newApartment.rooms),
+    floor: parseInt(newApartment.floor)
+  }
+
+  try {
+    const result = await developerAPI.createApartment(apartmentData)
+    console.log('Квартира успешно создана:', result)
+    alert('Квартира успешно добавлена!')
+    closeAddApartmentModal()
+    // Перезагружаем данные
+    await loadDeveloperData()
+  } catch (error) {
+    console.error('Ошибка при создании квартиры:', error)
+    alert('Ошибка при создании квартиры: ' + (error.message || 'Неизвестная ошибка'))
+  }
 }
 
 onMounted(() => {
@@ -1095,5 +1199,59 @@ onMounted(() => {
     margin: 1rem;
     min-width: auto;
   }
+}
+
+.apartments-list {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.apartments-list h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.apartment-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 0.5rem;
+}
+
+.apartment-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.apartment-info-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.apartment-name {
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+  min-width: 120px;
+}
+
+.apartment-price {
+  font-weight: 700;
+  color: #007aff;
+  font-size: 0.9rem;
+}
+
+.apartment-area,
+.apartment-rooms {
+  color: #666;
+  font-size: 0.8rem;
+  background: #e9ecef;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
 }
 </style> 

@@ -33,6 +33,15 @@ def search_properties(db: Session, search_params: PropertySearch) -> List[Proper
     if search_params.max_price is not None:
         query = query.filter(Property.price <= search_params.max_price)
     
+    if search_params.rooms is not None:
+        query = query.filter(Property.rooms == search_params.rooms)
+    
+    if search_params.min_area is not None:
+        query = query.filter(Property.area >= search_params.min_area)
+    
+    if search_params.max_area is not None:
+        query = query.filter(Property.area <= search_params.max_area)
+    
     if search_params.is_available is not None:
         query = query.filter(Property.is_available == search_params.is_available)
     
