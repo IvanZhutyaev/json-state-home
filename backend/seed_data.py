@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 from Database.DB_connection import SessionLocal, engine
-from Models.All_models import User, Law_Face, Property, Booking
+from Models.All_models import User, Law_Face, Property, Booking, ResidentialComplex
 from Cruds.User_crud import create_user
 from Cruds.Law_crud import create_zastroy
 from Cruds.Property_crud import create_property
+from Cruds.RC_crud import create_residential_complex
 from Schemas.User_schema import UserModel
 from Schemas.Zastroy_schema import ZastroyModel
 from Schemas.Property_schema import PropertyModel
+from Schemas.RC_schema import ResidentialComplexCreate
 
 
 def seed_database():
@@ -63,6 +65,49 @@ def seed_database():
                 print(f"Создан застройщик: {zastroy.Company_name}")
             except Exception as e:
                 print(f"Ошибка создания застройщика: {e}")
+        
+        # Создаем тестовые жилые комплексы
+        test_residential_complexes = [
+            ResidentialComplexCreate(
+                name="ЖК 'Солнечный'",
+                address="г. Москва, ул. Солнечная, 15",
+                developer_name="ООО 'Солнечный Дом'",
+                city="Москва",
+                commissioning_date="2025",
+                housing_class="Комфорт",
+                status="Строится",
+                avatar_url="https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК+Солнечный"
+            ),
+            ResidentialComplexCreate(
+                name="ЖК 'Парковый'",
+                address="г. Москва, ул. Парковая, 8",
+                developer_name="ООО 'Парковый Квартал'",
+                city="Москва",
+                commissioning_date="2024",
+                housing_class="Эконом",
+                status="Сдан",
+                avatar_url="https://via.placeholder.com/300x200/34c759/ffffff?text=ЖК+Парковый"
+            ),
+            ResidentialComplexCreate(
+                name="ЖК 'Речной'",
+                address="г. Москва, наб. Речная, 12",
+                developer_name="ООО 'Солнечный Дом'",
+                city="Москва",
+                commissioning_date="2026",
+                housing_class="Бизнес",
+                status="Планируется",
+                avatar_url="https://via.placeholder.com/300x200/ff9500/ffffff?text=ЖК+Речной"
+            )
+        ]
+        
+        created_complexes = []
+        for complex_data in test_residential_complexes:
+            try:
+                complex_obj = create_residential_complex(db, complex_data)
+                created_complexes.append(complex_obj)
+                print(f"Создан жилой комплекс: {complex_obj.name}")
+            except Exception as e:
+                print(f"Ошибка создания жилого комплекса: {e}")
         
         # Создаем тестовую недвижимость
         test_properties = [

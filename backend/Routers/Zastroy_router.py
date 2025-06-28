@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
+from typing import List, Optional
 
-from ..Cruds.RC_crud import create_residential_complex
-from ..Schemas.RC_schema import ResidentialComplexCreate
+from ..Cruds.RC_crud import create_residential_complex, get_residential_complexes_by_developer, get_all_residential_complexes
+from ..Schemas.RC_schema import ResidentialComplexCreate, ResidentialComplexResponse
 from ..Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
 from ..Cruds.Law_crud import (
     create_zastroy,
@@ -66,3 +67,15 @@ def add_residential_complex(
     db: Session = Depends(get_db)
 ):
     return create_residential_complex(db, complex_data)
+
+@router.get("/residential-complexes/", response_model=List[ResidentialComplexResponse])
+def get_residential_complexes(
+    developer_name: Optional[str] = Query(None, description="Имя застройщика"),
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    if developer_name:
+        return get_residential_complexes_by_developer(db, developer_name, skip=skip, limit=limit)
+    else:
+        return get_all_residential_complexes(db, skip=skip, limit=limit)

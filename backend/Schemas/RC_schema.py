@@ -14,3 +14,10 @@ class ResidentialComplexCreate(BaseModel):
     
     class Config:
         from_attributes = True  # Работает с ORM (для FastAPI >= 2.0)
+
+
+class ResidentialComplexResponse(ResidentialComplexCreate):
+    id: int
+    
+    class Config:
+        from_attributes = True

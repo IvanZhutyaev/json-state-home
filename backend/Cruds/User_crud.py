@@ -11,6 +11,9 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return hash_password(plain_password) == hashed_password
+
 
 def create_user(db: Session, user_data: UserModel):
     if db.query(User).filter(User.Phone_number == user_data.Phone_number).first():

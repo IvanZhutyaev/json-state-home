@@ -28,6 +28,13 @@ async function apiRequest(endpoint, options = {}) {
 
 // API для пользователей
 export const userAPI = {
+  // Регистрация пользователя
+  register: (userData) => 
+    apiRequest('/users/', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    }),
+  
   // Получить пользователя по ID
   getUser: (userId) => apiRequest(`/users/${userId}`),
   
@@ -47,6 +54,13 @@ export const userAPI = {
 
 // API для застройщиков
 export const developerAPI = {
+  // Регистрация застройщика
+  register: (zastroyData) => 
+    apiRequest('/zastroys/', {
+      method: 'POST',
+      body: JSON.stringify(zastroyData)
+    }),
+  
   // Вход застройщика
   login: (credentials) => 
     apiRequest('/zastroys/login', {
@@ -57,14 +71,25 @@ export const developerAPI = {
   // Получить застройщика по ID
   getDeveloper: (developerId) => apiRequest(`/zastroys/${developerId}`),
   
-  // Получить все ЖК застройщика
+  // Получить все ЖК застройщика (из таблицы Properties)
   getDeveloperProperties: (developerId) => apiRequest(`/properties/?zastroy_id=${developerId}`),
+  
+  // Получить все жилые комплексы застройщика (из таблицы ResidentialComplex)
+  getDeveloperResidentialComplexes: (developerName) => 
+    apiRequest(`/zastroys/residential-complexes/?developer_name=${encodeURIComponent(developerName)}`),
   
   // Создать новый ЖК
   createProperty: (propertyData) => 
     apiRequest('/properties/', {
       method: 'POST',
       body: JSON.stringify(propertyData)
+    }),
+  
+  // Создать новый жилой комплекс
+  createResidentialComplex: (complexData) => 
+    apiRequest('/zastroys/residential-complexes/', {
+      method: 'POST',
+      body: JSON.stringify(complexData)
     }),
   
   // Обновить ЖК

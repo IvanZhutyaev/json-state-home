@@ -188,6 +188,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { userAPI, developerAPI } from '../utils/api.js'
 
 const props = defineProps({
   isOpen: {
@@ -258,28 +259,18 @@ const handleLogin = async () => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: loginData.identifier,
-          password: loginData.password
-        })
+      const response = await userAPI.login({
+        phone: loginData.identifier,
+        password: loginData.password
       })
-      if (response.ok) {
-        const userData = await response.json()
-        emit('login-success', {
-          type: 'user',
-          name: loginData.identifier,
-          ...userData
-        })
-        alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
-      } else {
-        const errorData = await response.json()
-        alert(`Ошибка входа: ${errorData.detail}`)
-      }
+      emit('login-success', {
+        type: 'user',
+        name: loginData.identifier,
+        ...response
+      })
+      alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
-      alert('Ошибка сети!')
+      alert('Ошибка входа: ' + (e.message || 'Неизвестная ошибка'))
     }
   } else {
     if (!loginData.identifier || !loginData.password) {
@@ -288,28 +279,18 @@ const handleLogin = async () => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/zastroys/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          inn: parseInt(loginData.identifier),
-          password: loginData.password
-        })
+      const response = await developerAPI.login({
+        inn: parseInt(loginData.identifier),
+        password: loginData.password
       })
-      if (response.ok) {
-        const userData = await response.json()
-        emit('login-success', {
-          type: 'developer',
-          name: `Застройщик ${loginData.identifier}`,
-          ...userData
-        })
-        alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
-      } else {
-        const errorData = await response.json()
-        alert(`Ошибка входа: ${errorData.detail}`)
-      }
+      emit('login-success', {
+        type: 'developer',
+        name: `Застройщик ${loginData.identifier}`,
+        ...response
+      })
+      alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
-      alert('Ошибка сети!')
+      alert('Ошибка входа: ' + (e.message || 'Неизвестная ошибка'))
     }
   }
   closeModal()
@@ -329,25 +310,15 @@ const handleRegister = async () => {
       "password": registerData.password
     }
     try {
-      const response = await fetch('http://localhost:8000/users/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+      const response = await userAPI.register(userData)
+      emit('login-success', {
+        type: 'user',
+        name: registerData.name,
+        ...response
       })
-      if (response.ok) {
-        const userData = await response.json()
-        emit('login-success', {
-          type: 'user',
-          name: registerData.name,
-          ...userData
-        })
-        alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
-      } else {
-        const errorData = await response.json()
-        alert(`Ошибка регистрации: ${errorData.detail}`)
-      }
+      alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
-      alert('Ошибка сети!')
+      alert('Ошибка регистрации: ' + (e.message || 'Неизвестная ошибка'))
     }
   } else {
     if (!registerData.companyName || !registerData.inn || !registerData.ogrn || 
@@ -366,25 +337,15 @@ const handleRegister = async () => {
       "password": registerData.password
     }
     try {
-      const response = await fetch('http://localhost:8000/zastroys/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(developerData)
+      const response = await developerAPI.register(developerData)
+      emit('login-success', {
+        type: 'developer',
+        name: registerData.companyName,
+        ...response
       })
-      if (response.ok) {
-        const userData = await response.json()
-        emit('login-success', {
-          type: 'developer',
-          name: registerData.companyName,
-          ...userData
-        })
-        alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
-      } else {
-        const errorData = await response.json()
-        alert(`Ошибка регистрации: ${errorData.detail}`)
-      }
+      alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
-      alert('Ошибка сети!')
+      alert('Ошибка регистрации: ' + (e.message || 'Неизвестная ошибка'))
     }
   }
   closeModal()

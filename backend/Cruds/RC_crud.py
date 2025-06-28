@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from backend.Models.All_models import ResidentialComplex
-from backend.Schemas.RC_schema import ResidentialComplexCreate
+from ..Models.All_models import ResidentialComplex
+from ..Schemas.RC_schema import ResidentialComplexCreate
 
 
 def create_residential_complex(db: Session, complex_data: ResidentialComplexCreate):
@@ -19,3 +19,20 @@ def create_residential_complex(db: Session, complex_data: ResidentialComplexCrea
     db.commit()
     db.refresh(db_complex)
     return db_complex
+
+
+def get_residential_complexes_by_developer(db: Session, developer_name: str, skip: int = 0, limit: int = 100):
+    """Получить все жилые комплексы застройщика по имени застройщика"""
+    return db.query(ResidentialComplex).filter(
+        ResidentialComplex.developer_name == developer_name
+    ).offset(skip).limit(limit).all()
+
+
+def get_all_residential_complexes(db: Session, skip: int = 0, limit: int = 100):
+    """Получить все жилые комплексы"""
+    return db.query(ResidentialComplex).offset(skip).limit(limit).all()
+
+
+def get_residential_complex_by_id(db: Session, complex_id: int):
+    """Получить жилой комплекс по ID"""
+    return db.query(ResidentialComplex).filter(ResidentialComplex.id == complex_id).first()

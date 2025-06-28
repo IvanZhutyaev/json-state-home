@@ -74,6 +74,9 @@
             <div class="complex-info">
               <h3>{{ complex.name }}</h3>
               <p class="complex-address">{{ complex.address }}</p>
+              <p class="complex-city">Город: {{ complex.city }}</p>
+              <p class="complex-class">Класс: {{ complex.housingClass || 'Не указан' }}</p>
+              <p class="complex-date">Ввод в эксплуатацию: {{ complex.commissioningDate || 'Не указана' }}</p>
               <div class="complex-stats">
                 <span>Квартир: {{ complex.apartmentsCount }}</span>
                 <span>Продано: {{ complex.soldCount }}</span>
@@ -197,37 +200,45 @@
           <input v-model="newComplex.address" type="text" placeholder="Введите адрес" />
         </div>
         <div class="form-group">
+          <label>Имя застройщика:</label>
+          <input v-model="newComplex.developer_name" type="text" placeholder="Введите имя застройщика" />
+        </div>
+        <div class="form-group">
           <label>Город:</label>
           <select v-model="newComplex.city">
             <option value="">Выберите город</option>
+            <option value="Москва">Москва</option>
+            <option value="Санкт-Петербург">Санкт-Петербург</option>
             <option value="Краснодар">Краснодар</option>
             <option value="Адыгея">Адыгея</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Год ввода в эксплуатацию:</label>
-          <select v-model="newComplex.year">
-            <option value="">Выберите год</option>
-            <option value="2025">2025</option>
-            <option value="2030">2030</option>
-          </select>
+          <label>Дата ввода в эксплуатацию:</label>
+          <input v-model="newComplex.commissioning_date" type="text" placeholder="Например: 2025" />
         </div>
         <div class="form-group">
           <label>Класс ЖК:</label>
-          <select v-model="newComplex.building_type">
+          <select v-model="newComplex.housing_class">
             <option value="">Выберите класс</option>
             <option value="Эконом">Эконом</option>
             <option value="Комфорт">Комфорт</option>
             <option value="Бизнес">Бизнес</option>
+            <option value="Элитный">Элитный</option>
           </select>
         </div>
         <div class="form-group">
           <label>Статус:</label>
           <select v-model="newComplex.status">
             <option value="">Выберите статус</option>
-            <option value="Готов">Готов</option>
             <option value="Строится">Строится</option>
+            <option value="Сдан">Сдан</option>
+            <option value="Планируется">Планируется</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Ссылка на изображение (необязательно):</label>
+          <input v-model="newComplex.avatar_url" type="url" placeholder="https://example.com/image.jpg" />
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" @click="closeAddComplexModal">Отмена</button>
@@ -318,10 +329,12 @@ const showAddApartmentModal = ref(false)
 const newComplex = reactive({
   name: '',
   address: '',
+  developer_name: '',
   city: '',
-  year: '',
-  building_type: '',
-  status: ''
+  commissioning_date: '',
+  housing_class: '',
+  status: '',
+  avatar_url: ''
 })
 
 const newApartment = reactive({
@@ -339,6 +352,8 @@ const loading = ref(false)
 const loadDeveloperData = async () => {
   loading.value = true
   try {
+    console.log('Начинаем загрузку данных застройщика...')
+    
     // Получаем ID застройщика из localStorage или используем первый доступный
     let developerId = 1
     
@@ -351,8 +366,13 @@ const loadDeveloperData = async () => {
       }
     }
     
+    console.log('ID застройщика:', developerId)
+    
     // Загружаем информацию о застройщике
+    console.log('Загружаем информацию о застройщике...')
     const developer = await developerAPI.getDeveloper(developerId)
+    console.log('Данные застройщика:', developer)
+    
     developerInfo.value = {
       companyName: developer.Company_name,
       inn: developer.INN,
@@ -361,28 +381,59 @@ const loadDeveloperData = async () => {
       representative: developer.User_name
     }
     
-    // Загружаем ЖК застройщика
-    const properties = await developerAPI.getDeveloperProperties(developerId)
-    complexes.value = properties.map(property => ({
-      id: property.id,
-      name: property.name,
-      address: property.address,
-      status: property.is_available ? 'active' : 'inactive',
-      statusText: property.is_available ? 'Активен' : 'Неактивен',
-      apartmentsCount: 0, // Пока нет данных о количестве квартир
-      soldCount: 0, // Пока нет данных о продажах
-      image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК'
-    }))
+    // Загружаем жилые комплексы застройщика из таблицы ResidentialComplex
+    console.log('Загружаем жилые комплексы для:', developer.Company_name)
+    try {
+      const residentialComplexes = await developerAPI.getDeveloperResidentialComplexes(developer.Company_name)
+      console.log('Полученные ЖК:', residentialComplexes)
+      
+      complexes.value = residentialComplexes.map(complex => ({
+        id: complex.id,
+        name: complex.name,
+        address: complex.address,
+        status: complex.status === 'Сдан' ? 'active' : 'inactive',
+        statusText: complex.status || 'Неизвестно',
+        apartmentsCount: 0, // Пока нет данных о количестве квартир
+        soldCount: 0, // Пока нет данных о продажах
+        image: complex.avatar_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
+        city: complex.city,
+        housingClass: complex.housing_class,
+        commissioningDate: complex.commissioning_date
+      }))
+    } catch (complexError) {
+      console.warn('Не удалось загрузить жилые комплексы:', complexError)
+      console.log('Попробуем загрузить обычные объекты недвижимости...')
+      
+      // Fallback: загружаем обычные объекты недвижимости
+      const properties = await developerAPI.getDeveloperProperties(developerId)
+      complexes.value = properties.map(property => ({
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        status: property.is_available ? 'active' : 'inactive',
+        statusText: property.is_available ? 'Активен' : 'Неактивен',
+        apartmentsCount: 0,
+        soldCount: 0,
+        image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
+        city: property.city,
+        housingClass: 'Не указан',
+        commissioningDate: 'Не указана'
+      }))
+    }
     
-    // Обновляем аналитику
+    // Обновляем аналитику на основе реальных данных
     analytics.value.totalComplexes = complexes.value.length
     analytics.value.totalApartments = complexes.value.reduce((sum, complex) => sum + complex.apartmentsCount, 0)
     analytics.value.soldApartments = complexes.value.reduce((sum, complex) => sum + complex.soldCount, 0)
     analytics.value.totalRevenue = '0' // Пока нет данных о доходах
     
+    console.log('Данные успешно загружены. Количество ЖК:', complexes.value.length)
+    
   } catch (error) {
     console.error('Ошибка загрузки данных застройщика:', error)
-    alert('Ошибка загрузки данных. Проверьте подключение к серверу.')
+    console.error('Детали ошибки:', error.message)
+    console.error('Стек ошибки:', error.stack)
+    alert('Ошибка загрузки данных: ' + (error.message || 'Неизвестная ошибка'))
   } finally {
     loading.value = false
   }
@@ -435,8 +486,8 @@ const closeAddApartmentModal = () => {
 
 const addComplex = async () => {
   // Проверяем, что все обязательные поля заполнены
-  if (!newComplex.name || !newComplex.address || !newComplex.city || 
-      !newComplex.year || !newComplex.building_type || !newComplex.status) {
+  if (!newComplex.name || !newComplex.address || !newComplex.developer_name || !newComplex.city || 
+      !newComplex.commissioning_date || !newComplex.housing_class || !newComplex.status) {
     alert('Пожалуйста, заполните все обязательные поля')
     return
   }
@@ -451,19 +502,20 @@ const addComplex = async () => {
     }
   }
 
-  // Формируем JSON в нужном формате
+  // Формируем JSON в нужном формате согласно схеме ResidentialComplexCreate
   const complexData = {
     name: newComplex.name,
     address: newComplex.address,
+    developer_name: newComplex.developer_name,
     city: newComplex.city,
-    year: parseInt(newComplex.year),
-    building_type: newComplex.building_type,
+    commissioning_date: newComplex.commissioning_date,
+    housing_class: newComplex.housing_class,
     status: newComplex.status,
-    developer_id: developerId
+    avatar_url: newComplex.avatar_url || null
   }
 
   try {
-    const result = await developerAPI.createProperty(complexData)
+    const result = await developerAPI.createResidentialComplex(complexData)
     console.log('ЖК успешно создан:', result)
     alert('ЖК успешно добавлен!')
     closeAddComplexModal()
@@ -471,7 +523,7 @@ const addComplex = async () => {
     await loadDeveloperData()
   } catch (error) {
     console.error('Ошибка при создании ЖК:', error)
-    alert('Ошибка сети при создании ЖК')
+    alert('Ошибка при создании ЖК: ' + (error.message || 'Неизвестная ошибка'))
   }
 }
 
@@ -683,6 +735,24 @@ onMounted(() => {
 }
 
 .complex-address {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.complex-city {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.complex-class {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.complex-date {
   color: #666;
   font-size: 0.9rem;
   margin-bottom: 1rem;
