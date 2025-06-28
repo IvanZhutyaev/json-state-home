@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from Database.DB_connection import engine
+from backend.Database.DB_connection import engine
 from sqlalchemy import text
 
 def fix_database():

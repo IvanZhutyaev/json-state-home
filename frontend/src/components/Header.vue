@@ -7,6 +7,9 @@
       </div>
       
       <nav class="nav">
+        <button class="nav-link search-complexes-btn" @click="searchComplexes">
+          Поиск ЖК
+        </button>
         <a href="#" class="nav-link">Новостройки</a>
         <a href="#" class="nav-link">Застройщики</a>
         <a href="#" class="nav-link">Дома</a>
@@ -50,7 +53,7 @@ import { ref, onMounted } from 'vue'
 import LoginModal from './LoginModal.vue'
 import analytics from '../utils/analytics.js'
 
-const emit = defineEmits(['login-success', 'go-to-dashboard', 'go-home', 'logout'])
+const emit = defineEmits(['login-success', 'go-to-dashboard', 'go-home', 'logout', 'search-complexes'])
 
 const isLoginModalOpen = ref(false)
 const isLoggedIn = ref(false)
@@ -117,6 +120,12 @@ const goHome = () => {
   // Отслеживаем переход на главную страницу через логотип
   analytics.sendEvent(0, "logo_click")
   emit('go-home')
+}
+
+const searchComplexes = () => {
+  // Отслеживаем поиск ЖК
+  analytics.sendEvent(0, "search_complexes")
+  emit('search-complexes')
 }
 
 onMounted(() => {
@@ -186,11 +195,27 @@ onMounted(() => {
   transition: all 0.3s ease;
   padding: 8px 12px;
   border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
 }
 
 .nav-link:hover {
   color: #007aff;
   background: rgba(0, 122, 255, 0.1);
+}
+
+.search-complexes-btn {
+  background: #007aff;
+  color: white;
+  font-weight: 600;
+}
+
+.search-complexes-btn:hover {
+  background: #0056b3;
+  color: white;
 }
 
 .auth {
@@ -201,15 +226,15 @@ onMounted(() => {
   background: #007aff;
   color: white;
   border: none;
-  padding: 10px 24px;
+  padding: 10px 20px;
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background 0.2s;
 }
 
 .btn-login:hover {
-  background: #0056cc;
+  background: #0056b3;
 }
 
 .user-menu {
@@ -217,33 +242,32 @@ onMounted(() => {
 }
 
 .user-btn {
-  background: #f5f5f5;
-  color: #2c3e50;
+  background: none;
   border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s ease;
-  animation: slideIn 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #2c3e50;
+  transition: background 0.2s;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.user-btn:hover {
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.user-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #28a745;
 }
 
 .user-icon {
-  font-size: 0.8rem;
+  font-size: 12px;
   transition: transform 0.2s;
 }
 
@@ -252,10 +276,10 @@ onMounted(() => {
   top: 100%;
   right: 0;
   background: white;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 150px;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
   z-index: 1001;
   margin-top: 4px;
 }
@@ -263,50 +287,26 @@ onMounted(() => {
 .dropdown-item {
   display: block;
   width: 100%;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border: none;
   background: none;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 14px;
   color: #2c3e50;
+  transition: background 0.2s;
 }
 
 .dropdown-item:hover {
-  background: #f5f5f5;
+  background: #f8f9fa;
 }
 
 .dropdown-item:first-child {
-  border-radius: 6px 6px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .dropdown-item:last-child {
-  border-radius: 0 0 6px 6px;
-}
-
-.user-btn:hover {
-  background: #e5e5e5;
-}
-
-.user-status-indicator {
-  width: 8px;
-  height: 8px;
-  background: #34c759;
-  border-radius: 50%;
-  margin-right: 4px;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(52, 199, 89, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(52, 199, 89, 0);
-  }
+  border-radius: 0 0 8px 8px;
 }
 
 @media (max-width: 768px) {

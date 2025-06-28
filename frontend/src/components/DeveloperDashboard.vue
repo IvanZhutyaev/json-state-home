@@ -437,13 +437,13 @@ const loadDeveloperData = async () => {
       console.log('Попробуем загрузить обычные объекты недвижимости...')
       
       // Fallback: загружаем обычные объекты недвижимости
-    const properties = await developerAPI.getDeveloperProperties(developerId)
-    complexes.value = properties.map(property => ({
-      id: property.id,
-      name: property.name,
-      address: property.address,
-      status: property.is_available ? 'active' : 'inactive',
-      statusText: property.is_available ? 'Активен' : 'Неактивен',
+      const properties = await developerAPI.getDeveloperProperties(developerId)
+      complexes.value = properties.map(property => ({
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        status: property.is_available ? 'active' : 'inactive',
+        statusText: property.is_available ? 'Активен' : 'Неактивен',
         apartmentsCount: 0,
         soldCount: 0,
         image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
@@ -451,7 +451,7 @@ const loadDeveloperData = async () => {
         housingClass: 'Не указан',
         commissioningDate: 'Не указана',
         apartments: []
-    }))
+      }))
     }
     
     // Обновляем аналитику на основе реальных данных
@@ -485,7 +485,7 @@ const goBack = () => {
 
 const viewComplex = (complexId) => {
   // Отслеживаем просмотр ЖК
-  analytics.trackApartmentView(complexId)
+  analytics.sendEvent(complexId, "view_complex")
   console.log('Просмотр ЖК:', complexId)
 }
 
@@ -535,7 +535,7 @@ const addComplex = async () => {
     await developerAPI.createResidentialComplex({
       ...newComplex,
       developer_name: developerInfo.value.companyName,
-      zastroy_id: developerInfo.value.id || developerId // developerId должен быть определён выше
+      zastroy_id: developerInfo.value.id
     })
     await loadDeveloperData()
     showAddComplexModal.value = false

@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ResidentialComplexCreate(BaseModel):
@@ -19,6 +19,12 @@ class ResidentialComplexCreate(BaseModel):
 
 class ResidentialComplexResponse(ResidentialComplexCreate):
     id: int
+    rating: Optional[float] = None
+    rating_count: Optional[int] = None
     
     class Config:
         from_attributes = True
+
+
+class RatingModel(BaseModel):
+    rating: float = Field(ge=1.0, le=5.0, description="Рейтинг от 1 до 5")

@@ -3,7 +3,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import analytics from './utils/analytics.js';
 import Header from './components/Header.vue'
 import HeroGallery from './components/HeroGallery.vue'
-
+import ComplexSearch from './components/ComplexSearch.vue'
 import UserDashboard from './components/UserDashboard.vue'
 import DeveloperDashboard from './components/DeveloperDashboard.vue'
 import MapYandex from './components/MapYandex.vue'
@@ -12,8 +12,9 @@ const apartmentId = 123; // Можно заменить на актуальны�
 let startTime = 0;
 
 // Состояние приложения
-const currentView = ref('home') // 'home', 'user-dashboard', 'developer-dashboard'
+const currentView = ref('home') // 'home', 'complex-search', 'user-dashboard', 'developer-dashboard'
 const userType = ref(null) // 'user', 'developer'
+const selectedComplex = ref(null)
 
 onMounted(() => {
   startTime = Date.now();
@@ -44,6 +45,11 @@ onBeforeUnmount(() => {
 const showHome = () => {
   currentView.value = 'home'
   analytics.sendEvent(0, "navigate_home")
+}
+
+const showComplexSearch = () => {
+  currentView.value = 'complex-search'
+  analytics.sendEvent(0, "navigate_complex_search")
 }
 
 const showUserDashboard = () => {
@@ -91,6 +97,11 @@ const handleGoToDashboard = (userType) => {
 const handleGoHome = () => {
   showHome()
 }
+
+const handleComplexSelected = (complex) => {
+  selectedComplex.value = complex
+  // Можно добавить дополнительную логику при выборе ЖК
+}
 </script>
 
 <template>
@@ -102,10 +113,25 @@ const handleGoHome = () => {
         @go-to-dashboard="handleGoToDashboard"
         @go-home="handleGoHome"
         @logout="logout"
+        @search-complexes="showComplexSearch"
       />
       <HeroGallery />
       <MapYandex />
+    </div>
 
+    <!-- Поиск ЖК -->
+    <div v-else-if="currentView === 'complex-search'">
+      <Header 
+        @login-success="handleLoginSuccess"
+        @go-to-dashboard="handleGoToDashboard"
+        @go-home="handleGoHome"
+        @logout="logout"
+        @search-complexes="showComplexSearch"
+      />
+      <ComplexSearch 
+        @complex-selected="handleComplexSelected"
+        @go-back="showHome"
+      />
     </div>
 
     <!-- Личный кабинет пользователя -->

@@ -117,6 +117,33 @@ export const developerAPI = {
     })
 }
 
+// API для ЖК
+export const complexAPI = {
+  // Получить все ЖК
+  getAllComplexes: (params = {}) => {
+    const searchParams = new URLSearchParams()
+    if (params.city) searchParams.append('city', params.city)
+    if (params.housing_class) searchParams.append('housing_class', params.housing_class)
+    if (params.zastroy_id) searchParams.append('zastroy_id', params.zastroy_id)
+    
+    return apiRequest(`/zastroys/residential-complexes/?${searchParams.toString()}`)
+  },
+  
+  // Получить конкретный ЖК
+  getComplex: (complexId) => apiRequest(`/zastroys/residential-complexes/${complexId}`),
+  
+  // Получить квартиры в ЖК
+  getComplexApartments: (complexId) => 
+    apiRequest(`/zastroys/residential-complexes/${complexId}/apartments`),
+  
+  // Оценить ЖК
+  rateComplex: (complexId, rating) => 
+    apiRequest(`/zastroys/residential-complexes/${complexId}/rate`, {
+      method: 'POST',
+      body: JSON.stringify({ rating })
+    })
+}
+
 // API для недвижимости
 export const propertyAPI = {
   // Получить все объекты недвижимости
@@ -132,12 +159,26 @@ export const propertyAPI = {
     if (params.minArea) searchParams.append('min_area', params.minArea)
     if (params.maxArea) searchParams.append('max_area', params.maxArea)
     if (params.isAvailable !== undefined) searchParams.append('is_available', params.isAvailable)
+    if (params.complexId) searchParams.append('complex_id', params.complexId)
     
     return apiRequest(`/properties/search?${searchParams.toString()}`)
   },
   
   // Получить конкретный объект недвижимости
   getProperty: (propertyId) => apiRequest(`/properties/${propertyId}`),
+  
+  // Оценить квартиру
+  rateProperty: (propertyId, rating) => 
+    apiRequest(`/properties/${propertyId}/rate`, {
+      method: 'POST',
+      body: JSON.stringify({ rating })
+    }),
+  
+  // Пометить квартиру как имеющую ошибку
+  markPropertyError: (propertyId) => 
+    apiRequest(`/properties/${propertyId}/mark-error`, {
+      method: 'POST'
+    }),
   
   // Забронировать недвижимость
   bookProperty: (propertyId, userId) => 
@@ -158,15 +199,76 @@ export const propertyAPI = {
       method: 'POST'
     }),
   
-  // Купить недвижимость
+  // Купить недвижимость (через бронь)
   purchaseProperty: (bookingId, userId) => 
     apiRequest(`/properties/bookings/${bookingId}/purchase?user_id=${userId}`, {
       method: 'POST'
+    }),
+  
+  // Купить недвижимость напрямую
+  purchasePropertyDirect: (purchaseData, userId) => 
+    apiRequest(`/properties/purchase?user_id=${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(purchaseData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }),
+  
+  // Получить покупки пользователя
+  getUserPurchases: (userId) => apiRequest(`/properties/purchases/${userId}`),
+  
+  // Подать заявку на ипотеку
+  applyMortgage: (mortgageData, userId) => 
+    apiRequest(`/properties/mortgage?user_id=${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(mortgageData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }),
+  
+  // Получить ипотечные заявки пользователя
+  getUserMortgages: (userId) => apiRequest(`/properties/mortgages/${userId}`),
+  
+  // Рассчитать ипотеку
+  calculateMortgage: (calculationData) => 
+    apiRequest('/properties/mortgage/calculate', {
+      method: 'POST',
+      body: JSON.stringify(calculationData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 }
 
-export default {
-  userAPI,
-  propertyAPI,
-  developerAPI
+// API для аналитики
+export const analyticsAPI = {
+  // Отправить событие
+  trackEvent: (eventData) => 
+    apiRequest('/api/track-event', {
+      method: 'POST',
+      body: JSON.stringify(eventData)
+    }),
+  
+  // Получить сводку аналитики
+  getAnalyticsSummary: (days = 30) => 
+    apiRequest(`/api/analytics/summary?days=${days}`),
+  
+  // Получить аналитику квартиры
+  getApartmentAnalytics: (apartmentId, days = 30) => 
+    apiRequest(`/api/analytics/apartment/${apartmentId}?days=${days}`),
+  
+  // Получить аналитику застройщика
+  getDeveloperAnalytics: (developerId, days = 30) => 
+    apiRequest(`/api/analytics/developer/${developerId}?days=${days}`)
+}
+
+// Общий API объект для удобства
+export const api = {
+  ...userAPI,
+  ...developerAPI,
+  ...complexAPI,
+  ...propertyAPI,
+  ...analyticsAPI
 } 

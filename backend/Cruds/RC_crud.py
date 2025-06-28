@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 from ..Models.All_models import ResidentialComplex
 from ..Schemas.RC_schema import ResidentialComplexCreate
@@ -41,6 +42,28 @@ def get_all_residential_complexes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(ResidentialComplex).offset(skip).limit(limit).all()
 
 
-def get_residential_complex_by_id(db: Session, complex_id: int):
+def get_residential_complex(db: Session, complex_id: int):
     """Получить жилой комплекс по ID"""
     return db.query(ResidentialComplex).filter(ResidentialComplex.id == complex_id).first()
+
+
+def rate_residential_complex(db: Session, complex_id: int, rating: float) -> bool:
+    """Оценить ЖК"""
+    complex_obj = get_residential_complex(db, complex_id)
+    if not complex_obj:
+        raise ValueError("Жилой комплекс не найден")
+    
+    if rating < 1.0 or rating > 5.0:
+        raise ValueError("Рейтинг должен быть от 1 до 5")
+    
+    # Обновляем рейтинг
+    if complex_obj.rating is None:
+        complex_obj.rating = rating
+        complex_obj.rating_count = 1
+    else:
+        total_rating = complex_obj.rating * complex_obj.rating_count + rating
+        complex_obj.rating_count += 1
+        complex_obj.rating = total_rating / complex_obj.rating_count
+    
+    db.commit()
+    return True

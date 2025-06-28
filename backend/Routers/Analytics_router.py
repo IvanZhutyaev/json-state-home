@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from ..Database.DB_connection import get_db
 from ..Cruds.Analytics_crud import AnalyticsCRUD
+from ..Cruds.Property_crud import get_properties
 from ..Schemas.Analytics_schema import EventCreate, EventResponse, AnalyticsSummary
 from typing import List, Optional
 
@@ -100,12 +101,8 @@ async def get_developer_analytics(
 ):
     """Получить аналитику для всех квартир застройщика"""
     try:
-        from ..Cruds.Property_crud import PropertyCRUD
-        from ..Models.All_models import Property
-        
         # Получаем все квартиры застройщика
-        property_crud = PropertyCRUD(db)
-        properties = property_crud.get_properties_by_zastroy(developer_id)
+        properties = get_properties(db, zastroy_id=developer_id)
         
         analytics_crud = AnalyticsCRUD(db)
         developer_analytics = {

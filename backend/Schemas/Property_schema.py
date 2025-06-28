@@ -23,6 +23,10 @@ class PropertyResponse(PropertyModel):
     area: Optional[int] = None
     rooms: Optional[int] = None
     floor: Optional[int] = None
+    owner_id: Optional[int] = None
+    rating: Optional[float] = None
+    rating_count: Optional[int] = None
+    has_error: bool = False
 
     class Config:
         from_attributes = True
@@ -36,6 +40,11 @@ class PropertySearch(BaseModel):
     min_area: Optional[float] = None
     max_area: Optional[float] = None
     is_available: Optional[bool] = True
+    complex_id: Optional[int] = None  # Поиск по ЖК
+
+
+class RatingModel(BaseModel):
+    rating: float = Field(ge=1.0, le=5.0, description="Рейтинг от 1 до 5")
 
 
 class BookingModel(BaseModel):
@@ -48,7 +57,77 @@ class BookingResponse(BaseModel):
     property_id: int
     booking_date: datetime
     status: str
+    expires_at: Optional[datetime] = None
     property: PropertyResponse
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+class PurchaseModel(BaseModel):
+    property_id: int
+    purchase_price: int = Field(gt=0)
+    payment_method: str = Field(..., description="cash, mortgage, installment")
+    booking_id: Optional[int] = None
+
+
+class PurchaseResponse(BaseModel):
+    id: int
+    user_id: int
+    property_id: int
+    purchase_date: datetime
+    purchase_price: int
+    payment_method: str
+    status: str
+    booking_id: Optional[int] = None
+    property: PropertyResponse
+
+    class Config:
+        from_attributes = True
+
+
+class MortgageModel(BaseModel):
+    property_id: int
+    loan_amount: int = Field(gt=0)
+    down_payment: int = Field(gt=0)
+    interest_rate: float = Field(gt=0, le=100)
+    loan_term_years: int = Field(gt=0, le=30)
+    bank_name: Optional[str] = None
+    application_notes: Optional[str] = None
+    booking_id: Optional[int] = None
+
+
+class MortgageResponse(BaseModel):
+    id: int
+    user_id: int
+    property_id: int
+    application_date: datetime
+    loan_amount: int
+    down_payment: int
+    interest_rate: float
+    loan_term_years: int
+    monthly_payment: float
+    status: str
+    bank_name: Optional[str] = None
+    application_notes: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    booking_id: Optional[int] = None
+    property: PropertyResponse
+
+    class Config:
+        from_attributes = True
+
+
+class MortgageCalculationModel(BaseModel):
+    property_price: int = Field(gt=0)
+    down_payment_percent: float = Field(gt=0, le=100)
+    interest_rate: float = Field(gt=0, le=100)
+    loan_term_years: int = Field(gt=0, le=30)
+
+
+class MortgageCalculationResponse(BaseModel):
+    loan_amount: int
+    down_payment: int
+    monthly_payment: float
+    total_payment: float
+    total_interest: float 
