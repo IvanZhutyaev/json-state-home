@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
 
+from ..Cruds.RC_crud import create_residential_complex
+from ..Schemas.RC_schema import ResidentialComplexCreate
 from ..Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
 from ..Cruds.Law_crud import (
     create_zastroy,
@@ -56,3 +58,11 @@ def remove_zastroy(zastroy_id: int, db: Session = Depends(get_db)):
         return delete_zastroy(db, zastroy_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/residential-complexes/", response_model=ResidentialComplexCreate)
+def add_residential_complex(
+    complex_data: ResidentialComplexCreate,
+    db: Session = Depends(get_db)
+):
+    return create_residential_complex(db, complex_data)

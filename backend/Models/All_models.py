@@ -42,9 +42,25 @@ class Booking(base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
     property_id = Column(Integer, ForeignKey("Properties.id"), nullable=False)
-    booking_date = Column(String, nullable=True)  # Можно заменить на DateTime
+    booking_date = Column(String, nullable=True)
     status = Column(String, nullable=False, default="booked")
 
 
-# base.metadata.create_all(engine)
+class ResidentialComplex(base):
+    __tablename__ = "residential_complexes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)              # Название
+    address = Column(String, nullable=False)          # Адрес
+    developer_name = Column(String, nullable=False)   # Имя застройщика
+    city = Column(String, nullable=False)             # Город
+    commissioning_date = Column(String, nullable=False)                 # Ввод в эксплуатацию (может быть NULL)
+    housing_class = Column(String)                    # Класс (эконом, комфорт, бизнес)
+    status = Column(String)                           # Статус дома (строится, сдан, планируется)
+    avatar_url = Column(String)                       # Ссылка на аватар (может быть NULL)
+
+
+
+
 base.metadata.create_all(engine)
+# base.metadata.create_all(engine)
