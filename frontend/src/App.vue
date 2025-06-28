@@ -3,9 +3,10 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { sendEvent } from './utils/analytics.js';
 import Header from './components/Header.vue'
 import HeroGallery from './components/HeroGallery.vue'
-import Tour3D from './components/Tour3D.vue'
+
 import UserDashboard from './components/UserDashboard.vue'
 import DeveloperDashboard from './components/DeveloperDashboard.vue'
+import MapYandex from './components/MapYandex.vue'
 
 const apartmentId = 123; // Можно заменить на актуальный id
 let startTime = 0;
@@ -93,7 +94,8 @@ const handleGoHome = () => {
         @logout="logout"
       />
       <HeroGallery />
-      <Tour3D />
+      <MapYandex />
+
     </div>
 
     <!-- Личный кабинет пользователя -->
