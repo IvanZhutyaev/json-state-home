@@ -7,6 +7,7 @@ import ComplexSearch from './components/ComplexSearch.vue'
 import UserDashboard from './components/UserDashboard.vue'
 import DeveloperDashboard from './components/DeveloperDashboard.vue'
 import MapYandex from './components/MapYandex.vue'
+import ChatAssistant from './components/ChatAssistant.vue'
 
 const apartmentId = 123; // Можно заменить на актуальный id
 let startTime = 0;
@@ -143,6 +144,7 @@ const handleComplexSelected = (complex) => {
     <div v-else-if="currentView === 'developer-dashboard'">
       <DeveloperDashboard @logout="logout" @go-back="showHome" />
     </div>
+    <ChatAssistant />
   </div>
 </template>
 
