@@ -9,8 +9,14 @@
     </div>
 
     <div class="dashboard-content">
+      <!-- Индикатор загрузки -->
+      <div v-if="loading" class="loading-indicator">
+        <div class="loading-spinner"></div>
+        <p>Загрузка данных...</p>
+      </div>
+
       <!-- Аналитика -->
-      <div class="dashboard-section">
+      <div v-else class="dashboard-section">
         <h2>Аналитика</h2>
         <div class="analytics-grid">
           <div class="analytics-card">
@@ -274,83 +280,34 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { developerAPI, propertyAPI } from '../utils/api.js'
 
 const emit = defineEmits(['logout', 'go-back'])
 
 // Аналитика
 const analytics = ref({
-  totalComplexes: 3,
-  totalApartments: 156,
-  soldApartments: 89,
-  totalRevenue: '284,500,000'
+  totalComplexes: 0,
+  totalApartments: 0,
+  soldApartments: 0,
+  totalRevenue: '0'
 })
 
 // ЖК застройщика
-const complexes = ref([
-  {
-    id: 1,
-    name: 'ЖК "Солнечный"',
-    address: 'г. Москва, ул. Солнечная, 15',
-    status: 'active',
-    statusText: 'Активен',
-    apartmentsCount: 45,
-    soldCount: 32,
-    image: 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК+Солнечный'
-  },
-  {
-    id: 2,
-    name: 'ЖК "Парковый"',
-    address: 'г. Москва, ул. Парковая, 8',
-    status: 'active',
-    statusText: 'Активен',
-    apartmentsCount: 78,
-    soldCount: 45,
-    image: 'https://via.placeholder.com/300x200/34c759/ffffff?text=ЖК+Парковый'
-  },
-  {
-    id: 3,
-    name: 'ЖК "Речной"',
-    address: 'г. Москва, наб. Речная, 12',
-    status: 'construction',
-    statusText: 'Строительство',
-    apartmentsCount: 33,
-    soldCount: 12,
-    image: 'https://via.placeholder.com/300x200/ff9500/ffffff?text=ЖК+Речной'
-  }
-])
+const complexes = ref([])
 
 // Забронированные квартиры
-const bookedApartments = ref([
-  {
-    id: 1,
-    name: 'ЖК "Солнечный", кв. 45',
-    address: 'г. Москва, ул. Солнечная, 15',
-    price: '3,200,000',
-    clientName: 'Иван Петров',
-    image: 'https://via.placeholder.com/300x200/007aff/ffffff?text=Кв.+45'
-  }
-])
+const bookedApartments = ref([])
 
 // Проданные объекты
-const soldApartments = ref([
-  {
-    id: 2,
-    name: 'ЖК "Парковый", кв. 78',
-    address: 'г. Москва, ул. Парковая, 8',
-    price: '4,100,000',
-    buyerName: 'Анна Сидорова',
-    saleDate: '15.03.2024',
-    image: 'https://via.placeholder.com/300x200/34c759/ffffff?text=Кв.+78'
-  }
-])
+const soldApartments = ref([])
 
 // Личная информация застройщика
 const developerInfo = ref({
-  companyName: 'ООО "СтройИнвест"',
-  inn: '1234567890',
-  ogrn: '1234567890123',
-  address: 'г. Москва, ул. Строительная, 1',
-  representative: 'Петров И.И., директор'
+  companyName: '',
+  inn: '',
+  ogrn: '',
+  address: '',
+  representative: ''
 })
 
 // Модальные окна
@@ -375,6 +332,61 @@ const newApartment = reactive({
   price: '',
   image: ''
 })
+
+// Загрузка данных
+const loading = ref(false)
+
+const loadDeveloperData = async () => {
+  loading.value = true
+  try {
+    // Получаем ID застройщика из localStorage или используем первый доступный
+    let developerId = 1
+    
+    // Попробуем получить из localStorage (если пользователь авторизован)
+    const userInfo = localStorage.getItem('userInfo')
+    if (userInfo) {
+      const userData = JSON.parse(userInfo)
+      if (userData.type === 'developer' && userData.id) {
+        developerId = userData.id
+      }
+    }
+    
+    // Загружаем информацию о застройщике
+    const developer = await developerAPI.getDeveloper(developerId)
+    developerInfo.value = {
+      companyName: developer.Company_name,
+      inn: developer.INN,
+      ogrn: developer.OGRN,
+      address: developer.Adress,
+      representative: developer.User_name
+    }
+    
+    // Загружаем ЖК застройщика
+    const properties = await developerAPI.getDeveloperProperties(developerId)
+    complexes.value = properties.map(property => ({
+      id: property.id,
+      name: property.name,
+      address: property.address,
+      status: property.is_available ? 'active' : 'inactive',
+      statusText: property.is_available ? 'Активен' : 'Неактивен',
+      apartmentsCount: 0, // Пока нет данных о количестве квартир
+      soldCount: 0, // Пока нет данных о продажах
+      image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК'
+    }))
+    
+    // Обновляем аналитику
+    analytics.value.totalComplexes = complexes.value.length
+    analytics.value.totalApartments = complexes.value.reduce((sum, complex) => sum + complex.apartmentsCount, 0)
+    analytics.value.soldApartments = complexes.value.reduce((sum, complex) => sum + complex.soldCount, 0)
+    analytics.value.totalRevenue = '0' // Пока нет данных о доходах
+    
+  } catch (error) {
+    console.error('Ошибка загрузки данных застройщика:', error)
+    alert('Ошибка загрузки данных. Проверьте подключение к серверу.')
+  } finally {
+    loading.value = false
+  }
+}
 
 // Методы
 const logout = () => {
@@ -429,6 +441,16 @@ const addComplex = async () => {
     return
   }
 
+  // Получаем ID застройщика
+  let developerId = 1
+  const userInfo = localStorage.getItem('userInfo')
+  if (userInfo) {
+    const userData = JSON.parse(userInfo)
+    if (userData.type === 'developer' && userData.id) {
+      developerId = userData.id
+    }
+  }
+
   // Формируем JSON в нужном формате
   const complexData = {
     name: newComplex.name,
@@ -437,28 +459,16 @@ const addComplex = async () => {
     year: parseInt(newComplex.year),
     building_type: newComplex.building_type,
     status: newComplex.status,
-    developer_id: 1
+    developer_id: developerId
   }
 
   try {
-    const response = await fetch('http://localhost:8000/properties/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(complexData)
-    })
-
-    if (response.ok) {
-      const result = await response.json()
-      console.log('ЖК успешно создан:', result)
-      alert('ЖК успешно добавлен!')
-      closeAddComplexModal()
-      // Здесь можно добавить обновление списка ЖК
-    } else {
-      const errorData = await response.json()
-      alert(`Ошибка создания ЖК: ${errorData.detail}`)
-    }
+    const result = await developerAPI.createProperty(complexData)
+    console.log('ЖК успешно создан:', result)
+    alert('ЖК успешно добавлен!')
+    closeAddComplexModal()
+    // Перезагружаем данные
+    await loadDeveloperData()
   } catch (error) {
     console.error('Ошибка при создании ЖК:', error)
     alert('Ошибка сети при создании ЖК')
@@ -472,6 +482,7 @@ const addApartmentToComplex = () => {
 
 onMounted(() => {
   console.log('Загрузка данных застройщика')
+  loadDeveloperData()
 })
 </script>
 
@@ -947,6 +958,37 @@ onMounted(() => {
 
 .btn-secondary:hover {
   background: #e5e5e5;
+}
+
+/* Индикатор загрузки */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-indicator p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 @media (max-width: 768px) {

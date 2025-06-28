@@ -40,30 +40,71 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { propertyAPI } from '../utils/api.js'
 
-const galleryItems = ref([
-  {
-    title: 'ЖК "Солнечный"',
-    description: 'Современный комплекс с развитой инфраструктурой',
-    price: 'от 3.2 млн ₽'
-  },
-  {
-    title: 'ЖК "Парковый"',
-    description: 'Зеленый район с собственным парком',
-    price: 'от 4.1 млн ₽'
-  },
-  {
-    title: 'ЖК "Речной"',
-    description: 'Вид на реку, элитное расположение',
-    price: 'от 6.8 млн ₽'
-  },
-  {
-    title: 'ЖК "Центральный"',
-    description: 'В самом сердце города',
-    price: 'от 5.5 млн ₽'
+const currentSlide = ref(0)
+const galleryItems = ref([])
+
+// Загрузка данных о ЖК
+const loadGalleryData = async () => {
+  try {
+    const properties = await propertyAPI.getAllProperties()
+    galleryItems.value = properties.slice(0, 4).map(property => ({
+      title: property.name,
+      description: property.description || 'Современный жилой комплекс',
+      price: `от ${property.price.toLocaleString()} ₽`
+    }))
+  } catch (error) {
+    console.error('Ошибка загрузки данных галереи:', error)
+    // Fallback данные
+    galleryItems.value = [
+      {
+        title: 'ЖК "Солнечный"',
+        description: 'Современный комплекс с развитой инфраструктурой',
+        price: 'от 3.2 млн ₽'
+      },
+      {
+        title: 'ЖК "Парковый"',
+        description: 'Зеленый район с собственным парком',
+        price: 'от 4.1 млн ₽'
+      },
+      {
+        title: 'ЖК "Речной"',
+        description: 'Вид на реку, элитное расположение',
+        price: 'от 6.8 млн ₽'
+      },
+      {
+        title: 'ЖК "Центральный"',
+        description: 'В самом сердце города',
+        price: 'от 5.5 млн ₽'
+      }
+    ]
   }
-])
+}
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % galleryItems.value.length
+}
+
+const prevSlide = () => {
+  currentSlide.value = currentSlide.value === 0 
+    ? galleryItems.value.length - 1 
+    : currentSlide.value - 1
+}
+
+const goToSlide = (index) => {
+  currentSlide.value = index
+}
+
+onMounted(() => {
+  loadGalleryData()
+  
+  // Автоматическое переключение слайдов
+  setInterval(() => {
+    nextSlide()
+  }, 5000)
+})
 </script>
 
 <style scoped>

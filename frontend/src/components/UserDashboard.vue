@@ -9,8 +9,14 @@
     </div>
 
     <div class="dashboard-content">
+      <!-- Индикатор загрузки -->
+      <div v-if="loading" class="loading-indicator">
+        <div class="loading-spinner"></div>
+        <p>Загрузка данных...</p>
+      </div>
+
       <!-- Личная информация -->
-      <div class="dashboard-section">
+      <div v-else class="dashboard-section">
         <h2>Личная информация</h2>
         <div class="user-info">
           <div class="info-item">
@@ -26,7 +32,7 @@
       </div>
 
       <!-- Забронированные объекты -->
-      <div class="dashboard-section">
+      <div v-if="!loading" class="dashboard-section">
         <h2>Забронированные объекты</h2>
         <div v-if="bookedProperties.length === 0" class="empty-state">
           <p>У вас пока нет забронированных объектов</p>
@@ -60,7 +66,7 @@
       </div>
 
       <!-- Поиск недвижимости -->
-      <div class="dashboard-section">
+      <div v-if="!loading" class="dashboard-section">
         <h2>Найти недвижимость</h2>
         <div class="search-filters">
           <div class="filter-group">
@@ -132,25 +138,18 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { userAPI, propertyAPI } from '../utils/api.js'
 
 const emit = defineEmits(['logout', 'go-back'])
 
 // Данные пользователя
 const userInfo = ref({
-  name: 'Иван Иванов',
-  phone: '+7 (999) 123-45-67'
+  name: '',
+  phone: ''
 })
 
 // Забронированные объекты
-const bookedProperties = ref([
-  {
-    id: 1,
-    name: 'ЖК "Солнечный", кв. 45',
-    address: 'г. Москва, ул. Солнечная, 15',
-    price: '3,200,000',
-    image: 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК+Солнечный'
-  }
-])
+const bookedProperties = ref([])
 
 // Поиск недвижимости
 const searchFilters = reactive({
@@ -159,22 +158,7 @@ const searchFilters = reactive({
   maxPrice: ''
 })
 
-const searchResults = ref([
-  {
-    id: 2,
-    name: 'ЖК "Парковый", кв. 78',
-    address: 'г. Москва, ул. Парковая, 8',
-    price: '4,100,000',
-    image: 'https://via.placeholder.com/300x200/34c759/ffffff?text=ЖК+Парковый'
-  },
-  {
-    id: 3,
-    name: 'ЖК "Речной", кв. 23',
-    address: 'г. Москва, наб. Речная, 12',
-    price: '6,800,000',
-    image: 'https://via.placeholder.com/300x200/ff9500/ffffff?text=ЖК+Речной'
-  }
-])
+const searchResults = ref([])
 
 // Модальное окно редактирования
 const showEditModal = ref(false)
@@ -182,6 +166,49 @@ const editForm = reactive({
   name: '',
   phone: ''
 })
+
+// Загрузка данных пользователя
+const loading = ref(false)
+
+const loadUserData = async () => {
+  loading.value = true
+  try {
+    // Получаем ID пользователя из localStorage или используем первый доступный
+    let userId = 1
+    
+    // Попробуем получить из localStorage (если пользователь авторизован)
+    const userInfoRaw = localStorage.getItem('userInfo')
+    if (userInfoRaw) {
+      const userData = JSON.parse(userInfoRaw)
+      if (userData.type === 'user' && userData.id) {
+        userId = userData.id
+      }
+    }
+    
+    // Загружаем информацию о пользователе
+    const user = await userAPI.getUser(userId)
+    userInfo.value = {
+      name: user.User_name,
+      phone: user.Phone_number || 'Не указан'
+    }
+    
+    // Загружаем забронированные объекты
+    const bookings = await propertyAPI.getUserBookings(userId)
+    bookedProperties.value = bookings.map(booking => ({
+      id: booking.property.id,
+      name: booking.property.name,
+      address: booking.property.address,
+      price: booking.property.price.toLocaleString(),
+      image: booking.property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=Недвижимость'
+    }))
+    
+  } catch (error) {
+    console.error('Ошибка загрузки данных пользователя:', error)
+    alert('Ошибка загрузки данных. Проверьте подключение к серверу.')
+  } finally {
+    loading.value = false
+  }
+}
 
 // Методы
 const logout = () => {
@@ -204,10 +231,27 @@ const closeEditModal = () => {
   showEditModal.value = false
 }
 
-const saveProfile = () => {
-  userInfo.value.name = editForm.name
-  userInfo.value.phone = editForm.phone
-  closeEditModal()
+const saveProfile = async () => {
+  try {
+    // Получаем ID пользователя
+    let userId = 1
+    const userInfoRaw = localStorage.getItem('userInfo')
+    if (userInfoRaw) {
+      const userData = JSON.parse(userInfoRaw)
+      if (userData.type === 'user' && userData.id) {
+        userId = userData.id
+      }
+    }
+    
+    await userAPI.updateProfile(userId, editForm.name, editForm.phone)
+    userInfo.value.name = editForm.name
+    userInfo.value.phone = editForm.phone
+    closeEditModal()
+    alert('Профиль успешно обновлен!')
+  } catch (error) {
+    console.error('Ошибка обновления профиля:', error)
+    alert('Ошибка при обновлении профиля')
+  }
 }
 
 const browseProperties = () => {
@@ -215,19 +259,63 @@ const browseProperties = () => {
   console.log('Поиск недвижимости')
 }
 
-const searchProperties = () => {
-  // Логика поиска
-  console.log('Поиск с фильтрами:', searchFilters)
+const searchProperties = async () => {
+  try {
+    const results = await propertyAPI.searchProperties(searchFilters)
+    searchResults.value = results.map(property => ({
+      id: property.id,
+      name: property.name,
+      address: property.address,
+      price: property.price.toLocaleString(),
+      image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=Недвижимость'
+    }))
+  } catch (error) {
+    console.error('Ошибка поиска недвижимости:', error)
+  }
 }
 
-const bookProperty = (propertyId) => {
-  // Логика бронирования
-  console.log('Бронирование объекта:', propertyId)
+const bookProperty = async (propertyId) => {
+  try {
+    // Получаем ID пользователя
+    let userId = 1
+    const userInfoRaw = localStorage.getItem('userInfo')
+    if (userInfoRaw) {
+      const userData = JSON.parse(userInfoRaw)
+      if (userData.type === 'user' && userData.id) {
+        userId = userData.id
+      }
+    }
+    
+    await propertyAPI.bookProperty(propertyId, userId)
+    alert('Недвижимость забронирована!')
+    // Перезагружаем данные
+    await loadUserData()
+  } catch (error) {
+    console.error('Ошибка бронирования:', error)
+    alert('Ошибка при бронировании')
+  }
 }
 
-const buyProperty = (propertyId) => {
-  // Логика покупки
-  console.log('Покупка объекта:', propertyId)
+const buyProperty = async (propertyId) => {
+  try {
+    // Получаем ID пользователя
+    let userId = 1
+    const userInfoRaw = localStorage.getItem('userInfo')
+    if (userInfoRaw) {
+      const userData = JSON.parse(userInfoRaw)
+      if (userData.type === 'user' && userData.id) {
+        userId = userData.id
+      }
+    }
+    
+    await propertyAPI.purchaseProperty(propertyId, userId)
+    alert('Недвижимость куплена!')
+    // Перезагружаем данные
+    await loadUserData()
+  } catch (error) {
+    console.error('Ошибка покупки:', error)
+    alert('Ошибка при покупке')
+  }
 }
 
 const cancelBooking = (propertyId) => {
@@ -241,8 +329,8 @@ const viewDetails = (propertyId) => {
 }
 
 onMounted(() => {
-  // Загрузка данных пользователя
   console.log('Загрузка данных пользователя')
+  loadUserData()
 })
 </script>
 
@@ -581,6 +669,37 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+}
+
+/* Индикатор загрузки */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-indicator p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 @media (max-width: 768px) {

@@ -21,6 +21,7 @@ from ..Cruds.Property_crud import (
     update_user_profile
 )
 from ..Database.DB_connection import get_db
+from ..Models.All_models import Property
 
 router = APIRouter(prefix="/properties", tags=["Недвижимость"])
 
@@ -29,9 +30,12 @@ router = APIRouter(prefix="/properties", tags=["Недвижимость"])
 def read_properties(
     skip: int = 0, 
     limit: int = 100, 
+    zastroy_id: int = None,
     db: Session = Depends(get_db)
 ):
-    """Получить список всей недвижимости"""
+    """Получить список всей недвижимости или по застройщику"""
+    if zastroy_id is not None:
+        return db.query(Property).filter(Property.zastroy_id == zastroy_id).offset(skip).limit(limit).all()
     return get_properties(db, skip=skip, limit=limit)
 
 

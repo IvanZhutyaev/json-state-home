@@ -24,4 +24,27 @@ class User(base):
     password = Column(String, nullable=False)
 
 
+class Property(base):
+    __tablename__ = "Properties"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    address = Column(String, nullable=False)
+    price = Column(Integer, nullable=False)
+    description = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    city = Column(String, nullable=False)
+    is_available = Column(BOOLEAN, nullable=False, default=True)
+    zastroy_id = Column(Integer, ForeignKey("Law_faces.id"), nullable=False)
+
+
+class Booking(base):
+    __tablename__ = "Bookings"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    property_id = Column(Integer, ForeignKey("Properties.id"), nullable=False)
+    booking_date = Column(String, nullable=True)  # Можно заменить на DateTime
+    status = Column(String, nullable=False, default="booked")
+
+
 # base.metadata.create_all(engine)
+base.metadata.create_all(engine)

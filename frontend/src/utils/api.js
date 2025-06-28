@@ -45,6 +45,42 @@ export const userAPI = {
     })
 }
 
+// API для застройщиков
+export const developerAPI = {
+  // Вход застройщика
+  login: (credentials) => 
+    apiRequest('/zastroys/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials)
+    }),
+  
+  // Получить застройщика по ID
+  getDeveloper: (developerId) => apiRequest(`/zastroys/${developerId}`),
+  
+  // Получить все ЖК застройщика
+  getDeveloperProperties: (developerId) => apiRequest(`/properties/?zastroy_id=${developerId}`),
+  
+  // Создать новый ЖК
+  createProperty: (propertyData) => 
+    apiRequest('/properties/', {
+      method: 'POST',
+      body: JSON.stringify(propertyData)
+    }),
+  
+  // Обновить ЖК
+  updateProperty: (propertyId, propertyData) => 
+    apiRequest(`/properties/${propertyId}`, {
+      method: 'PUT',
+      body: JSON.stringify(propertyData)
+    }),
+  
+  // Удалить ЖК
+  deleteProperty: (propertyId) => 
+    apiRequest(`/properties/${propertyId}`, {
+      method: 'DELETE'
+    })
+}
+
 // API для недвижимости
 export const propertyAPI = {
   // Получить все объекты недвижимости
@@ -92,5 +128,6 @@ export const propertyAPI = {
 
 export default {
   userAPI,
-  propertyAPI
+  propertyAPI,
+  developerAPI
 } 

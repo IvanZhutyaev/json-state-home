@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from .Database.DB_connection import SessionLocal, engine
-from .Models.All_models import User, Law_Face, Property, Booking
-from .Cruds.User_crud import create_user
-from .Cruds.Law_crud import create_zastroy
-from .Cruds.Property_crud import create_property
-from .Schemas.User_schema import UserModel
-from .Schemas.Zastroy_schema import ZastroyModel
-from .Schemas.Property_schema import PropertyModel
+from Database.DB_connection import SessionLocal, engine
+from Models.All_models import User, Law_Face, Property, Booking
+from Cruds.User_crud import create_user
+from Cruds.Law_crud import create_zastroy
+from Cruds.Property_crud import create_property
+from Schemas.User_schema import UserModel
+from Schemas.Zastroy_schema import ZastroyModel
+from Schemas.Property_schema import PropertyModel
 
 
 def seed_database():
@@ -119,8 +119,8 @@ def seed_database():
         
         # Создаем тестовые брони
         if created_users and created_properties:
-            from .Cruds.Property_crud import create_booking
-            from .Schemas.Property_schema import BookingModel
+            from Cruds.Property_crud import create_booking
+            from Schemas.Property_schema import BookingModel
             
             test_booking = BookingModel(property_id=created_properties[0].id)
             try:

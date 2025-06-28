@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .Routers import Zastroy_router, User_router
+from .Routers import Zastroy_router, User_router, Property_router
 from .Database.DB_connection import create_tables
 
 app = FastAPI()
@@ -16,6 +16,7 @@ app.add_middleware(
 
 app.include_router(Zastroy_router.router)
 app.include_router(User_router.router)
+app.include_router(Property_router.router)
 
 
 @app.get("/items/")
