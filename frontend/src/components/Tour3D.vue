@@ -16,12 +16,12 @@
 </template>
 
 <script setup>
-import { sendEvent } from '../utils/analytics.js';
+import analytics from '../utils/analytics.js';
 
 const apartmentId = 123; // Можно заменить на актуальный id
 
 function on3DTourClick() {
-  sendEvent(apartmentId, "click_3d_tour");
+  analytics.track3DTourClick(apartmentId);
 }
 </script>
 

@@ -16,39 +16,7 @@
       </div>
 
       <!-- Аналитика -->
-      <div v-else class="dashboard-section">
-        <h2>Аналитика</h2>
-        <div class="analytics-grid">
-          <div class="analytics-card">
-            <div class="analytics-icon">📊</div>
-            <div class="analytics-content">
-              <h3>Всего ЖК</h3>
-              <p class="analytics-number">{{ analytics.totalComplexes }}</p>
-            </div>
-          </div>
-          <div class="analytics-card">
-            <div class="analytics-icon">🏠</div>
-            <div class="analytics-content">
-              <h3>Всего квартир</h3>
-              <p class="analytics-number">{{ analytics.totalApartments }}</p>
-            </div>
-          </div>
-          <div class="analytics-card">
-            <div class="analytics-icon">💰</div>
-            <div class="analytics-content">
-              <h3>Продано</h3>
-              <p class="analytics-number">{{ analytics.soldApartments }}</p>
-            </div>
-          </div>
-          <div class="analytics-card">
-            <div class="analytics-icon">📈</div>
-            <div class="analytics-content">
-              <h3>Доход</h3>
-              <p class="analytics-number">{{ analytics.totalRevenue }} ₽</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AnalyticsDashboard />
 
       <!-- ЖК застройщика -->
       <div class="dashboard-section">
@@ -317,16 +285,18 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { developerAPI, propertyAPI } from '../utils/api.js'
+import { developerAPI } from '../utils/api.js'
+import analytics from '../utils/analytics.js'
+import AnalyticsDashboard from './AnalyticsDashboard.vue'
 
 const emit = defineEmits(['logout', 'go-back'])
 
 // Аналитика
-const analytics = ref({
+const developerStats = ref({
   totalComplexes: 0,
   totalApartments: 0,
   soldApartments: 0,
-  totalRevenue: '0'
+  totalRevenue: 0
 })
 
 // ЖК застройщика
@@ -340,6 +310,7 @@ const soldApartments = ref([])
 
 // Личная информация застройщика
 const developerInfo = ref({
+  id: '',
   companyName: '',
   inn: '',
   ogrn: '',
@@ -406,6 +377,7 @@ const loadDeveloperData = async () => {
     console.log('Данные застройщика:', developer)
     
     developerInfo.value = {
+      id: developer.id,
       companyName: developer.Company_name,
       inn: developer.INN,
       ogrn: developer.OGRN,
@@ -416,7 +388,7 @@ const loadDeveloperData = async () => {
     // Загружаем жилые комплексы застройщика из таблицы ResidentialComplex
     console.log('Загружаем жилые комплексы для:', developer.Company_name)
     try {
-      const residentialComplexes = await developerAPI.getDeveloperResidentialComplexes(developer.Company_name)
+      const residentialComplexes = await developerAPI.getDeveloperResidentialComplexes(developer.id)
       console.log('Полученные ЖК:', residentialComplexes)
       
       // Загружаем квартиры для каждого ЖК
@@ -465,13 +437,13 @@ const loadDeveloperData = async () => {
       console.log('Попробуем загрузить обычные объекты недвижимости...')
       
       // Fallback: загружаем обычные объекты недвижимости
-      const properties = await developerAPI.getDeveloperProperties(developerId)
-      complexes.value = properties.map(property => ({
-        id: property.id,
-        name: property.name,
-        address: property.address,
-        status: property.is_available ? 'active' : 'inactive',
-        statusText: property.is_available ? 'Активен' : 'Неактивен',
+    const properties = await developerAPI.getDeveloperProperties(developerId)
+    complexes.value = properties.map(property => ({
+      id: property.id,
+      name: property.name,
+      address: property.address,
+      status: property.is_available ? 'active' : 'inactive',
+      statusText: property.is_available ? 'Активен' : 'Неактивен',
         apartmentsCount: 0,
         soldCount: 0,
         image: property.image_url || 'https://via.placeholder.com/300x200/007aff/ffffff?text=ЖК',
@@ -479,14 +451,14 @@ const loadDeveloperData = async () => {
         housingClass: 'Не указан',
         commissioningDate: 'Не указана',
         apartments: []
-      }))
+    }))
     }
     
     // Обновляем аналитику на основе реальных данных
-    analytics.value.totalComplexes = complexes.value.length
-    analytics.value.totalApartments = complexes.value.reduce((sum, complex) => sum + complex.apartmentsCount, 0)
-    analytics.value.soldApartments = complexes.value.reduce((sum, complex) => sum + complex.soldCount, 0)
-    analytics.value.totalRevenue = '0' // Пока нет данных о доходах
+    developerStats.value.totalComplexes = complexes.value.length
+    developerStats.value.totalApartments = complexes.value.reduce((sum, complex) => sum + complex.apartmentsCount, 0)
+    developerStats.value.soldApartments = complexes.value.reduce((sum, complex) => sum + complex.soldCount, 0)
+    developerStats.value.totalRevenue = '0' // Пока нет данных о доходах
     
     console.log('Данные успешно загружены. Количество ЖК:', complexes.value.length)
     
@@ -512,27 +484,39 @@ const goBack = () => {
 }
 
 const viewComplex = (complexId) => {
+  // Отслеживаем просмотр ЖК
+  analytics.trackApartmentView(complexId)
   console.log('Просмотр ЖК:', complexId)
 }
 
 const editComplex = (complexId) => {
+  // Отслеживаем редактирование ЖК
+  analytics.sendEvent(complexId, "edit_complex")
   console.log('Редактирование ЖК:', complexId)
 }
 
 const addApartment = (complexId) => {
+  // Отслеживаем добавление квартиры
+  analytics.sendEvent(complexId, "add_apartment")
   selectedComplexId.value = complexId
   showAddApartmentModal.value = true
 }
 
 const confirmSale = (apartmentId) => {
+  // Отслеживаем подтверждение продажи
+  analytics.sendEvent(apartmentId, "confirm_sale")
   console.log('Подтверждение продажи:', apartmentId)
 }
 
 const cancelBooking = (apartmentId) => {
+  // Отслеживаем отмену брони
+  analytics.sendEvent(apartmentId, "cancel_booking")
   console.log('Отмена брони:', apartmentId)
 }
 
 const editDeveloperProfile = () => {
+  // Отслеживаем редактирование профиля
+  analytics.sendEvent(0, "edit_developer_profile")
   console.log('Редактирование профиля застройщика')
 }
 
@@ -547,92 +531,30 @@ const closeAddApartmentModal = () => {
 }
 
 const addComplex = async () => {
-  // Проверяем, что все обязательные поля заполнены
-  if (!newComplex.name || !newComplex.address || !newComplex.developer_name || !newComplex.city || 
-      !newComplex.commissioning_date || !newComplex.housing_class || !newComplex.status) {
-    alert('Пожалуйста, заполните все обязательные поля')
-    return
-  }
-
-  // Получаем ID застройщика
-  let developerId = 1
-  const userInfo = localStorage.getItem('userInfo')
-  if (userInfo) {
-    const userData = JSON.parse(userInfo)
-    if (userData.type === 'developer' && userData.id) {
-      developerId = userData.id
-    }
-  }
-
-  // Формируем JSON в нужном формате согласно схеме ResidentialComplexCreate
-  const complexData = {
-    name: newComplex.name,
-    address: newComplex.address,
-    developer_name: newComplex.developer_name,
-    city: newComplex.city,
-    commissioning_date: newComplex.commissioning_date,
-    housing_class: newComplex.housing_class,
-    status: newComplex.status,
-    avatar_url: newComplex.avatar_url || null
-  }
-
   try {
-    const result = await developerAPI.createResidentialComplex(complexData)
-    console.log('ЖК успешно создан:', result)
-    alert('ЖК успешно добавлен!')
-    closeAddComplexModal()
-    // Перезагружаем данные
+    await developerAPI.createResidentialComplex({
+      ...newComplex,
+      developer_name: developerInfo.value.companyName,
+      zastroy_id: developerInfo.value.id || developerId // developerId должен быть определён выше
+    })
     await loadDeveloperData()
-  } catch (error) {
-    console.error('Ошибка при создании ЖК:', error)
-    alert('Ошибка при создании ЖК: ' + (error.message || 'Неизвестная ошибка'))
+    showAddComplexModal.value = false
+  } catch (e) {
+    alert('Ошибка при добавлении ЖК: ' + (e.message || 'Неизвестная ошибка'))
   }
 }
 
 const addApartmentToComplex = async () => {
-  // Проверяем, что все обязательные поля заполнены
-  if (!newApartment.name || !newApartment.address || !newApartment.price || 
-      !newApartment.city || !newApartment.area) {
-    alert('Пожалуйста, заполните все обязательные поля')
-    return
-  }
-
-  // Получаем ID застройщика
-  let developerId = 1
-  const userInfo = localStorage.getItem('userInfo')
-  if (userInfo) {
-    const userData = JSON.parse(userInfo)
-    if (userData.type === 'developer' && userData.id) {
-      developerId = userData.id
-    }
-  }
-
-  // Формируем данные квартиры
-  const apartmentData = {
-    name: newApartment.name,
-    address: newApartment.address,
-    price: parseFloat(newApartment.price),
-    description: newApartment.description || null,
-    image_url: newApartment.image_url || null,
-    city: newApartment.city,
-    is_available: true,
-    zastroy_id: developerId,
-    // Дополнительные поля для квартиры
-    area: parseFloat(newApartment.area),
-    rooms: parseInt(newApartment.rooms),
-    floor: parseInt(newApartment.floor)
-  }
-
   try {
-    const result = await developerAPI.createApartment(apartmentData)
-    console.log('Квартира успешно создана:', result)
-    alert('Квартира успешно добавлена!')
-    closeAddApartmentModal()
-    // Перезагружаем данные
+    await developerAPI.createApartment({
+      ...newApartment,
+      complex_id: selectedComplexId.value,
+      zastroy_id: developerInfo.value.id
+    })
     await loadDeveloperData()
-  } catch (error) {
-    console.error('Ошибка при создании квартиры:', error)
-    alert('Ошибка при создании квартиры: ' + (error.message || 'Неизвестная ошибка'))
+    showAddApartmentModal.value = false
+  } catch (e) {
+    alert('Ошибка при добавлении квартиры: ' + (e.message || 'Неизвестная ошибка'))
   }
 }
 

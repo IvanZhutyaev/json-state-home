@@ -48,6 +48,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import LoginModal from './LoginModal.vue'
+import analytics from '../utils/analytics.js'
 
 const emit = defineEmits(['login-success', 'go-to-dashboard', 'go-home', 'logout'])
 
@@ -60,6 +61,8 @@ const userInfo = ref({
 })
 
 const openLoginModal = () => {
+  // Отслеживаем открытие модального окна входа
+  analytics.sendEvent(0, "open_login_modal")
   isLoginModalOpen.value = true
 }
 
@@ -83,16 +86,22 @@ const handleLoginSuccess = (userData) => {
 }
 
 const toggleUserMenu = () => {
+  // Отслеживаем открытие/закрытие меню пользователя
+  analytics.sendEvent(0, "toggle_user_menu")
   showUserMenu.value = !showUserMenu.value
 }
 
 const goToDashboard = () => {
+  // Отслеживаем переход в личный кабинет
+  analytics.sendEvent(0, "go_to_dashboard", userInfo.value.type === 'developer' ? 2 : 1)
   showUserMenu.value = false
   // Переход к личному кабинету будет обработан в родительском компоненте
   emit('go-to-dashboard', userInfo.value.type)
 }
 
 const logout = () => {
+  // Отслеживаем выход пользователя
+  analytics.sendEvent(0, "header_logout")
   isLoggedIn.value = false
   userInfo.value = { name: 'Пользователь', type: null }
   showUserMenu.value = false
@@ -105,6 +114,8 @@ const logout = () => {
 }
 
 const goHome = () => {
+  // Отслеживаем переход на главную страницу через логотип
+  analytics.sendEvent(0, "logo_click")
   emit('go-home')
 }
 

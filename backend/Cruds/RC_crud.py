@@ -9,6 +9,7 @@ def create_residential_complex(db: Session, complex_data: ResidentialComplexCrea
         name=complex_data.name,
         address=complex_data.address,
         developer_name=complex_data.developer_name,
+        zastroy_id=complex_data.zastroy_id,
         city=complex_data.city,
         commissioning_date=complex_data.commissioning_date,
         housing_class=complex_data.housing_class,
@@ -19,6 +20,13 @@ def create_residential_complex(db: Session, complex_data: ResidentialComplexCrea
     db.commit()
     db.refresh(db_complex)
     return db_complex
+
+
+def get_residential_complexes_by_zastroy_id(db: Session, zastroy_id: int, skip: int = 0, limit: int = 100):
+    """Получить все жилые комплексы застройщика по ID застройщика"""
+    return db.query(ResidentialComplex).filter(
+        ResidentialComplex.zastroy_id == zastroy_id
+    ).offset(skip).limit(limit).all()
 
 
 def get_residential_complexes_by_developer(db: Session, developer_name: str, skip: int = 0, limit: int = 100):

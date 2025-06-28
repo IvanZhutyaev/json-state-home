@@ -24,11 +24,15 @@
 <script setup>
 import { onMounted } from 'vue';
 import axios from 'axios';
+import analytics from '../utils/analytics.js';
 
 onMounted(() => {
   let map = null;
   let allBuildings = [];
   let currentPlacemarks = [];
+
+  // Отслеживаем загрузку карты
+  analytics.sendEvent(0, "map_loaded")
 
   // Данные по Краснодарскому краю и Адыгее
   allBuildings = [
@@ -211,47 +215,62 @@ onMounted(() => {
     }
   ];
 
+  // Функция для создания метки на карте
   function createPlacemark(building) {
-    let iconColor = 'blue';
-    if (building.housing_class === 'Эконом') iconColor = 'red';
-    else if (building.housing_class === 'Бизнес') iconColor = 'green';
-    
-    return new window.ymaps.Placemark([building.latitude, building.longitude], {
-      balloonContentHeader: building.name,
-      balloonContentBody: `
-        <strong>Адрес:</strong> ${building.address}<br/>
-        <strong>Цена:</strong> от ${building.price_from.toLocaleString()} ₽ до ${building.price_to.toLocaleString()} ₽<br/>
-        <strong>Класс:</strong> ${building.housing_class}
-      `
-    }, {
-      preset: `islands#${iconColor}HomeIcon`,
-      iconColor: iconColor
+    const placemark = new window.ymaps.Placemark(
+      [building.latitude, building.longitude],
+      {
+        balloonContentHeader: building.name,
+        balloonContentBody: `
+          <p><strong>Адрес:</strong> ${building.address}</p>
+          <p><strong>Класс:</strong> ${building.housing_class}</p>
+          <p><strong>Цена:</strong> от ${building.price_from.toLocaleString()} до ${building.price_to.toLocaleString()} ₽</p>
+        `,
+        balloonContentFooter: `<button onclick="viewBuilding(${building.id})" style="background: #007aff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Подробнее</button>`
+      },
+      {
+        preset: 'islands#blueDotIcon'
+      }
+    );
+
+    // Добавляем обработчик клика на метку
+    placemark.events.add('click', function() {
+      analytics.trackMapClick(building.id)
+      console.log('Клик по метке на карте:', building.name)
     });
+
+    return placemark;
   }
 
-  function updateMap() {
-    if (!map) return;
-    
-    // Очищаем все метки
-    map.geoObjects.removeAll();
-    currentPlacemarks = [];
-    
-    const selectedClass = document.getElementById('classFilter').value;
-    const maxPrice = parseInt(document.getElementById('priceFilter').value);
-    
-    // Фильтруем здания
-    const filteredBuildings = allBuildings.filter(b => {
-      const matchClass = selectedClass ? b.housing_class === selectedClass : true;
-      const matchPrice = b.price_from <= maxPrice;
-      return matchClass && matchPrice;
+  function filterBuildings() {
+    const classFilter = document.getElementById('classFilter').value;
+    const priceFilter = parseInt(document.getElementById('priceFilter').value);
+
+    // Отслеживаем применение фильтров
+    const filterCount = (classFilter ? 1 : 0) + (priceFilter < 50000000 ? 1 : 0)
+    analytics.trackFilterApplied(filterCount)
+
+    // Очищаем текущие метки
+    currentPlacemarks.forEach(placemark => {
+      map.geoObjects.remove(placemark);
     });
-    
+    currentPlacemarks = [];
+
+    // Фильтруем здания
+    const filteredBuildings = allBuildings.filter(building => {
+      const classMatch = !classFilter || building.housing_class === classFilter;
+      const priceMatch = building.price_to <= priceFilter;
+      return classMatch && priceMatch;
+    });
+
     // Добавляем отфильтрованные метки
     filteredBuildings.forEach(building => {
       const placemark = createPlacemark(building);
       map.geoObjects.add(placemark);
       currentPlacemarks.push(placemark);
     });
+
+    console.log(`Отображено ${filteredBuildings.length} зданий из ${allBuildings.length}`);
   }
 
   function populateClassFilter() {
@@ -284,14 +303,14 @@ onMounted(() => {
     populateClassFilter();
     
     // Добавляем обработчики событий
-    document.getElementById('classFilter').addEventListener('change', updateMap);
+    document.getElementById('classFilter').addEventListener('change', filterBuildings);
     document.getElementById('priceFilter').addEventListener('input', () => {
       updatePriceLabel();
-      updateMap();
+      filterBuildings();
     });
 
     // Добавляем все метки
-    updateMap();
+    filterBuildings();
   });
 
   // Пробуем загрузить данные с API
@@ -300,7 +319,7 @@ onMounted(() => {
       .then(response => {
         allBuildings = response.data;
         populateClassFilter();
-        updateMap();
+        filterBuildings();
       })
       .catch(error => {
         console.error('Ошибка загрузки данных:', error);

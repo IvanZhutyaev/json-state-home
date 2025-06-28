@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { sendEvent } from './utils/analytics.js';
+import analytics from './utils/analytics.js';
 import Header from './components/Header.vue'
 import HeroGallery from './components/HeroGallery.vue'
 
@@ -30,31 +30,38 @@ onMounted(() => {
   if (savedUserType) {
     userType.value = savedUserType
   }
+  
+  // Отслеживаем загрузку главной страницы
+  analytics.sendEvent(0, "page_load", 1)
 });
 
 onBeforeUnmount(() => {
   const duration = (Date.now() - startTime) / 1000;
-  sendEvent(apartmentId, "time_on_page", duration);
+  analytics.sendEvent(apartmentId, "time_on_page", duration);
 });
 
 // Методы для переключения между представлениями
 const showHome = () => {
   currentView.value = 'home'
+  analytics.sendEvent(0, "navigate_home")
 }
 
 const showUserDashboard = () => {
   currentView.value = 'user-dashboard'
   userType.value = 'user'
   localStorage.setItem('userType', 'user')
+  analytics.sendEvent(0, "navigate_user_dashboard")
 }
 
 const showDeveloperDashboard = () => {
   currentView.value = 'developer-dashboard'
   userType.value = 'developer'
   localStorage.setItem('userType', 'developer')
+  analytics.sendEvent(0, "navigate_developer_dashboard")
 }
 
 const logout = () => {
+  analytics.sendEvent(0, "user_logout")
   currentView.value = 'home'
   userType.value = null
   localStorage.removeItem('userType')
@@ -62,6 +69,9 @@ const logout = () => {
 }
 
 const handleLoginSuccess = (userData) => {
+  // Отслеживаем успешный вход
+  analytics.sendEvent(0, "user_login", userData.type === 'developer' ? 2 : 1)
+  
   // Сохраняем информацию о пользователе
   localStorage.setItem('userInfo', JSON.stringify(userData))
   

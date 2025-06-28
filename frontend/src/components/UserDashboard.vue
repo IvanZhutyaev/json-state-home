@@ -158,6 +158,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { userAPI, propertyAPI } from '../utils/api.js'
+import analytics from '../utils/analytics.js'
 
 const emit = defineEmits(['logout', 'go-back'])
 
@@ -283,6 +284,9 @@ const browseProperties = () => {
 
 const searchProperties = async () => {
   try {
+    // Отслеживаем поиск
+    analytics.trackSearch(searchFilters)
+    
     const results = await propertyAPI.searchProperties(searchFilters)
     searchResults.value = results.map(property => ({
       id: property.id,
@@ -298,6 +302,9 @@ const searchProperties = async () => {
 
 const bookProperty = async (propertyId) => {
   try {
+    // Отслеживаем клик по бронированию
+    analytics.trackBookClick(propertyId)
+    
     // Получаем ID пользователя
     let userId = 1
     const userInfoRaw = localStorage.getItem('userInfo')
@@ -346,11 +353,17 @@ const cancelBooking = (propertyId) => {
 }
 
 const viewDetails = (propertyId) => {
+  // Отслеживаем просмотр деталей квартиры
+  analytics.trackApartmentView(propertyId)
+  
   // Просмотр деталей объекта
   console.log('Детали объекта:', propertyId)
 }
 
 const clearFilters = () => {
+  // Отслеживаем очистку фильтров
+  analytics.trackFilterApplied(0)
+  
   // Логика очистки фильтров
   searchFilters.city = ''
   searchFilters.minPrice = ''

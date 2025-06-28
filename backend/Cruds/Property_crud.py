@@ -6,15 +6,26 @@ from typing import List, Optional
 
 
 def create_property(db: Session, property_data: PropertyModel) -> Property:
-    db_property = Property(**property_data.dict())
+    data = property_data.dict()
+    # Если complex_id или zastroy_id есть в data, добавляем их явно
+    if 'complex_id' in data:
+        data['complex_id'] = data['complex_id']
+    if 'zastroy_id' in data:
+        data['zastroy_id'] = data['zastroy_id']
+    db_property = Property(**data)
     db.add(db_property)
     db.commit()
     db.refresh(db_property)
     return db_property
 
 
-def get_properties(db: Session, skip: int = 0, limit: int = 100) -> List[Property]:
-    return db.query(Property).offset(skip).limit(limit).all()
+def get_properties(db: Session, skip: int = 0, limit: int = 100, zastroy_id: int = None, complex_id: int = None) -> List[Property]:
+    query = db.query(Property)
+    if zastroy_id is not None:
+        query = query.filter(Property.zastroy_id == zastroy_id)
+    if complex_id is not None:
+        query = query.filter(Property.complex_id == complex_id)
+    return query.offset(skip).limit(limit).all()
 
 
 def get_property(db: Session, property_id: int) -> Optional[Property]:

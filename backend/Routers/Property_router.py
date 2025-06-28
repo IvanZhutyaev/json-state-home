@@ -31,12 +31,11 @@ def read_properties(
     skip: int = 0, 
     limit: int = 100, 
     zastroy_id: int = None,
+    complex_id: int = None,
     db: Session = Depends(get_db)
 ):
-    """Получить список всей недвижимости или по застройщику"""
-    if zastroy_id is not None:
-        return db.query(Property).filter(Property.zastroy_id == zastroy_id).offset(skip).limit(limit).all()
-    return get_properties(db, skip=skip, limit=limit)
+    """Получить список всей недвижимости или по застройщику/ЖК"""
+    return get_properties(db, skip=skip, limit=limit, zastroy_id=zastroy_id, complex_id=complex_id)
 
 
 @router.get("/search", response_model=List[PropertyResponse])

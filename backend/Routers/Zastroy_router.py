@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 from typing import List, Optional
 
-from ..Cruds.RC_crud import create_residential_complex, get_residential_complexes_by_developer, get_all_residential_complexes
+from ..Cruds.RC_crud import create_residential_complex, get_residential_complexes_by_developer, get_all_residential_complexes, get_residential_complexes_by_zastroy_id
 from ..Schemas.RC_schema import ResidentialComplexCreate, ResidentialComplexResponse
 from ..Schemas.Zastroy_schema import ZastroyModel, ZastroyResponse, ZastroyLogin
 from ..Cruds.Law_crud import (
@@ -70,12 +70,12 @@ def add_residential_complex(
 
 @router.get("/residential-complexes/", response_model=List[ResidentialComplexResponse])
 def get_residential_complexes(
-    developer_name: Optional[str] = Query(None, description="Имя застройщика"),
+    zastroy_id: Optional[int] = Query(None, description="ID застройщика"),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    if developer_name:
-        return get_residential_complexes_by_developer(db, developer_name, skip=skip, limit=limit)
+    if zastroy_id:
+        return get_residential_complexes_by_zastroy_id(db, zastroy_id, skip=skip, limit=limit)
     else:
         return get_all_residential_complexes(db, skip=skip, limit=limit)

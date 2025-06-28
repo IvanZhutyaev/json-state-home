@@ -75,8 +75,8 @@ export const developerAPI = {
   getDeveloperProperties: (developerId) => apiRequest(`/properties/?zastroy_id=${developerId}`),
   
   // Получить все жилые комплексы застройщика (из таблицы ResidentialComplex)
-  getDeveloperResidentialComplexes: (developerName) => 
-    apiRequest(`/zastroys/residential-complexes/?developer_name=${encodeURIComponent(developerName)}`),
+  getDeveloperResidentialComplexes: (zastroyId) => 
+    apiRequest(`/zastroys/residential-complexes/?zastroy_id=${zastroyId}`),
   
   // Создать новый ЖК
   createProperty: (propertyData) => 

@@ -6,12 +6,13 @@ from datetime import datetime
 class PropertyModel(BaseModel):
     name: str = Field(max_length=100)
     address: str = Field(max_length=255)
-    price: float = Field(gt=0)
+    price: int = Field(gt=0)
     description: Optional[str] = None
     image_url: Optional[str] = None
     city: str = Field(max_length=100)
     is_available: bool = True
     zastroy_id: int
+    complex_id: Optional[int] = None
     area: Optional[int] = None  # Площадь в м²
     rooms: Optional[int] = None  # Количество комнат
     floor: Optional[int] = None  # Этаж

@@ -189,6 +189,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { userAPI, developerAPI } from '../utils/api.js'
+import analytics from '../utils/analytics.js'
 
 const props = defineProps({
   isOpen: {
@@ -221,20 +222,28 @@ const registerData = reactive({
 })
 
 const selectUserType = (type) => {
+  // Отслеживаем выбор типа пользователя
+  analytics.sendEvent(0, "select_user_type", type === 'developer' ? 2 : 1)
   userType.value = type
 }
 
 const switchToLogin = () => {
+  // Отслеживаем переключение на форму входа
+  analytics.sendEvent(0, "switch_to_login")
   isLogin.value = true
   clearFormData()
 }
 
 const switchToRegister = () => {
+  // Отслеживаем переключение на форму регистрации
+  analytics.sendEvent(0, "switch_to_register")
   isLogin.value = false
   clearFormData()
 }
 
 const backToTypeSelection = () => {
+  // Отслеживаем возврат к выбору типа
+  analytics.sendEvent(0, "back_to_type_selection")
   userType.value = null
   clearFormData()
 }
@@ -245,6 +254,8 @@ const clearFormData = () => {
 }
 
 const closeModal = () => {
+  // Отслеживаем закрытие модального окна
+  analytics.sendEvent(0, "close_login_modal")
   emit('close')
   userType.value = null
   isLogin.value = true
@@ -259,10 +270,17 @@ const handleLogin = async () => {
     }
     
     try {
+      // Отслеживаем попытку входа пользователя
+      analytics.sendEvent(0, "login_attempt", 1)
+      
       const response = await userAPI.login({
         phone: loginData.identifier,
         password: loginData.password
       })
+      
+      // Отслеживаем успешный вход пользователя
+      analytics.sendEvent(0, "login_success", 1)
+      
       emit('login-success', {
         type: 'user',
         name: loginData.identifier,
@@ -270,6 +288,8 @@ const handleLogin = async () => {
       })
       alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
+      // Отслеживаем ошибку входа
+      analytics.sendEvent(0, "login_error", 1)
       alert('Ошибка входа: ' + (e.message || 'Неизвестная ошибка'))
     }
   } else {
@@ -279,10 +299,17 @@ const handleLogin = async () => {
     }
     
     try {
+      // Отслеживаем попытку входа застройщика
+      analytics.sendEvent(0, "login_attempt", 2)
+      
       const response = await developerAPI.login({
         inn: parseInt(loginData.identifier),
         password: loginData.password
       })
+      
+      // Отслеживаем успешный вход застройщика
+      analytics.sendEvent(0, "login_success", 2)
+      
       emit('login-success', {
         type: 'developer',
         name: `Застройщик ${loginData.identifier}`,
@@ -290,6 +317,8 @@ const handleLogin = async () => {
       })
       alert('Вход выполнен успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
+      // Отслеживаем ошибку входа
+      analytics.sendEvent(0, "login_error", 2)
       alert('Ошибка входа: ' + (e.message || 'Неизвестная ошибка'))
     }
   }
@@ -310,7 +339,14 @@ const handleRegister = async () => {
       "password": registerData.password
     }
     try {
+      // Отслеживаем попытку регистрации пользователя
+      analytics.sendEvent(0, "register_attempt", 1)
+      
       const response = await userAPI.register(userData)
+      
+      // Отслеживаем успешную регистрацию пользователя
+      analytics.sendEvent(0, "register_success", 1)
+      
       emit('login-success', {
         type: 'user',
         name: registerData.name,
@@ -318,6 +354,8 @@ const handleRegister = async () => {
       })
       alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
+      // Отслеживаем ошибку регистрации
+      analytics.sendEvent(0, "register_error", 1)
       alert('Ошибка регистрации: ' + (e.message || 'Неизвестная ошибка'))
     }
   } else {
@@ -337,7 +375,14 @@ const handleRegister = async () => {
       "password": registerData.password
     }
     try {
+      // Отслеживаем попытку регистрации застройщика
+      analytics.sendEvent(0, "register_attempt", 2)
+      
       const response = await developerAPI.register(developerData)
+      
+      // Отслеживаем успешную регистрацию застройщика
+      analytics.sendEvent(0, "register_success", 2)
+      
       emit('login-success', {
         type: 'developer',
         name: registerData.companyName,
@@ -345,6 +390,8 @@ const handleRegister = async () => {
       })
       alert('Регистрация выполнена успешно! Теперь вы можете перейти в личный кабинет через меню.')
     } catch (e) {
+      // Отслеживаем ошибку регистрации
+      analytics.sendEvent(0, "register_error", 2)
       alert('Ошибка регистрации: ' + (e.message || 'Неизвестная ошибка'))
     }
   }

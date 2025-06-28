@@ -6,6 +6,7 @@ class ResidentialComplexCreate(BaseModel):
     name: str                      # Название (обязательное)
     address: str                   # Адрес (обязательное)
     developer_name: str            # Имя застройщика (обязательное)
+    zastroy_id: int                # ID застройщика (обязательное)
     city: str                      # Город (обязательное)
     commissioning_date: Optional[str] = None  # Ввод в эксплуатацию (необязательное)
     housing_class: Optional[str] = None        # Класс (необязательное)
